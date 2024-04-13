@@ -184,7 +184,7 @@ const IndexPage = () => {
                                 {/*<Link href={`http://192.168.1.82:8000/build/${historyItem[2]}`}>{historyItem[7]}</Link>*/}
                                 {/*return task page*/}
                                 <td>
-                                    <Link href={`/task?deploy_time=${historyItem[2].split('-')[2]}`}>
+                                    <Link href={`/task?deploy_id=${historyItem[2].split('-')[2]}`}>
                                         {historyItem[7]}
                                     </Link>
                                 </td>

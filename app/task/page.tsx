@@ -1,60 +1,83 @@
-// `app/dashboard/page.tsx` is the UI for the `/dashboard` URL
-"use client";  // 声明这是一个 Client Side Render 的 Component. Next.js 默认使用 Server Side Render
-import React, {
-    FormEvent,
-    useEffect,
-    useState
-} from 'react';
-import { useSearchParams } from 'next/navigation'
+'use client'
+import React, { FormEvent, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+
+interface TaskState {
+    deploy_time: string;
+    step: string;
+    state: string;
+    action: string;
+}
+
 const TaskPage = () => {
-    const searchParams = useSearchParams()
-    const deploy_time = searchParams.get('deploy_time')
+    const searchParams = useSearchParams();
+    const deploy_id = searchParams.get('deploy_id');
+    const [isLoading, setIsLoading] = useState(false);
+    const [taskState, setTaskState] = useState<TaskState>({
+        deploy_time: '',
+        step: '',
+        state: '',
+        action: ''
+    });
 
-    const [taskState, setTaskState] = useState([]);
-    const fetchTask = () => {
+    const fetchTask = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`http://192.168.1.82:8000/build/${deploy_id}`);
+            const data = await response.json();
+            setTaskState(data);
+        } catch (error) {
+            console.error('Error fetching task:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-        try{
-        fetch(`http://192.168.1.82:8000/build/${deploy_time}`, {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json',
-            },
-
-        })  .then(response => response.json())
-            .then(data => {
-                setTaskState(data);
-                console.log('task info:', data)
-            })
-        }catch (error)
-    {
-        console.log('Error fetching task:', error)
-    }
-    }
     useEffect(() => {
         fetchTask();
     }, []);
 
-    async function onSwitch(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault()
+    const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setIsLoading(true);
         try {
-            const formData = new FormData(event.currentTarget)
-            // 接口示例：/build/timestamp?action=revoke method: PUT
-            const response = await fetch('http://192.168.1.82:8000/build/', {
-                method: 'PUT',
-                body: JSON.stringify({deploy_time: formData.get('deploy_time'), action: formData.get('action')})
+            const formData = new FormData(event.currentTarget);
+            formData.append('action', 'revoke');
 
-            })
-        }catch (error) {
-            // Handle error if necessary
-            console.error(error)
+            const response = await fetch(`http://192.168.1.82:8000/build/`, {
+                method: 'PUT',
+                body: formData,
+            });
+            const data = await response.json();
+            console.log('Response:', data);
+        } catch (error) {
+            console.error('Error submitting:', error);
+        } finally {
+            setIsLoading(false);
         }
-    }
+    };
 
     return (
-        <div>
-            return <>deploy_time: {deploy_time}</>
+        <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+            <form onSubmit={onSubmit}>
+                <label style={{ display: 'block', marginBottom: '10px' }}>
+                    <span>构建id:</span>
+                    <input type="text" name="deploy_time" value={taskState.deploy_time} readOnly style={{ marginLeft: '10px' }}/>
+                </label>
+                <label style={{ display: 'block', marginBottom: '10px' }}>
+                    <span>当前任务:</span>
+                    <input type="text" value={taskState.step} readOnly style={{ marginLeft: '10px' }}/>
+                </label>
+                <label style={{ display: 'block', marginBottom: '10px' }}>
+                    <span>任务状态:</span>
+                    <input type="text" value={taskState.state} readOnly style={{ marginLeft: '10px' }}/>
+                </label>
+                <button className="button" type="submit" disabled={isLoading} style={{ marginTop: '20px', padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}>
+                    {isLoading ? 'Loading...' : 'Submit'}
+                </button>
+            </form>
         </div>
-    )
+    );
 }
 
 export default TaskPage;
