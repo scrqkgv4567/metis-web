@@ -2,49 +2,73 @@ import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Link from "next/link";
 
-
 const IndexPage = () => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-    const [appVersionOptions, setAppVersionOptions] = useState([]); // For the form
+    const [appVersionOptions, setAppVersionOptions] = useState([]);
+    const [filterVersionOptions, setFilterVersionOptions] = useState([]);
     const [selectedProject, setSelectedProject] = useState('waf');
+    const [selectedHistoryProject, setSelectedHistoryProject] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [historyData, setHistoryData] = useState([]);
     const [filterVersion, setFilterVersion] = useState('');
-    const [selectedHistoryProject, setSelectedHistoryProject] = useState('');
-    const handleHistoryProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedHistoryProject(event.target.value);
-    };
+
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
     };
 
+    const handleHistoryProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedHistoryProject(event.target.value);
+    };
+
+    // Fetch versions for the main project selection
     useEffect(() => {
         const controller = new AbortController();
-        const fetchVersions = async ({projectName, versionSetter}: { projectName: any, versionSetter: any }) => {
+        const fetchVersions = async () => {
+            if (!selectedProject) return;
             try {
                 const response = await fetch(`${apiBaseUrl}/get_versions/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ project_name: projectName }),
+                    body: JSON.stringify({ project_name: selectedProject }),
                     signal: controller.signal
                 });
                 const data = await response.json();
-                versionSetter(data.versions);
+                setAppVersionOptions(data.versions);
             } catch (error) {
-                    console.error('Failed to fetch versions:', error);
+                console.error('Failed to fetch versions:', error);
             }
         };
 
-        if (selectedProject) {
-            fetchVersions({projectName: selectedProject, versionSetter: setAppVersionOptions}).then(r => r);
-        }
-
-        return () => {
-            controller.abort();
-        };
+        fetchVersions().then(r => r);
+        return () => controller.abort();
     }, [selectedProject, apiBaseUrl]);
 
+    // Fetch versions for the history project selection
+    useEffect(() => {
+        const controller = new AbortController();
+        const fetchFilterVersion = async () => {
+            if (!selectedHistoryProject) {
+                setFilterVersionOptions([]);
+                return;
+            }
+            try {
+                const response = await fetch(`${apiBaseUrl}/get_versions/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_name: selectedHistoryProject }),
+                    signal: controller.signal
+                });
+                const data = await response.json();
+                setFilterVersionOptions(data.versions);
+            } catch (error) {
+                console.error('Failed to fetch versions:', error);
+            }
+        };
+
+        fetchFilterVersion().then(r => r);
+        return () => controller.abort();
+    }, [selectedHistoryProject, apiBaseUrl]);
     useEffect(() => {
         const fetchHistory = async () => {
             try {
@@ -54,6 +78,7 @@ const IndexPage = () => {
                     body: JSON.stringify({})
                 });
                 const data = await response.json();
+
                 interface HistoryItem {
                   [index: number]: string | number;
                 }
@@ -180,7 +205,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                     <select value={filterVersion} onChange={e => setFilterVersion(e.target.value)}
                             className="form-select">
                         <option value="">所有版本</option>
-                        {appVersionOptions.map(version => (
+                        {filterVersionOptions.map(version => (
                             <option key={version} value={version}>{version}</option>
                         ))}
                     </select>
@@ -191,7 +216,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             <div className="card mb-3" key={index}>
                                 <div className="card-body">
                                     <h5 className="card-title">{historyItem[2]}</h5>
-                                    <p className="card-text mb-2 text-muted">项目: {historyItem[3]} 版本: {historyItem[4]} </p>
+                                    <p className="card-text">项目: {historyItem[3]} 版本: {historyItem[4]} </p>
                                     <p className="card-text">构建状态: {historyItem[7]}</p>
 
                                     <p className="card-text">构建时间: {historyItem[5]}～{historyItem[6]}</p>

@@ -72,6 +72,7 @@ body {
 
 .card-text, .card-subtitle {
     color: #666;
+
 }
 
 .card-link {
@@ -154,3 +155,44 @@ button:disabled {
     }
 }
 
+
+.card-container {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Adapts the number of columns based on the container width */
+    align-items: start; /* Aligns items at the start of the grid area */
+}
+
+.card {
+    display: compact;
+    flex-direction: column; /* Makes the card flexible in the direction of column */
+    height: 100%; /* Ensures all cards stretch to fill the grid row height */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1; /* Allows the card body to expand and fill available space */
+    padding: 20px;
+}
+
+
+@media (min-width: 768px) {
+    .card-container {
+        grid-template-columns: repeat(2, 1fr); /* Two columns for medium screens */
+    }
+}
+
+@media (min-width: 1024px) {
+    .card-container {
+        grid-template-columns: repeat(3, 1fr); /* Three columns for large screens */
+    }
+}
+
+@media (min-width: 1440px) {
+    .card-container {
+        grid-template-columns: repeat(4, 1fr); /* Four columns for very large screens */
+    }
+}
