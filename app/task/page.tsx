@@ -10,6 +10,8 @@ interface TaskState {
 }
 
 const TaskPage = () => {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
     const searchParams = useSearchParams();
     const deploy_id = searchParams.get('deploy_id');
     const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +21,7 @@ const TaskPage = () => {
         const doFetchTask = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`http://192.168.1.82:8000/build/${deploy_id}`);
+                const response = await fetch(`${apiBaseUrl}/build/${deploy_id}`);
                 const data = await response.json();
                 setTaskState(data);
             } catch (error) {
@@ -29,8 +31,8 @@ const TaskPage = () => {
             }
         };
 
-        doFetchTask();
-    }, [deploy_id]);
+        doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
+    }, [deploy_id, apiBaseUrl]);
 
     const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
