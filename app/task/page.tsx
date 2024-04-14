@@ -41,7 +41,7 @@ const TaskPage = () => {
             const formData = new FormData();
             formData.append('action', 'revoke');
             formData.append('deploy_time', taskState.deploy_time);
-            const response = await fetch(`http://192.168.1.82:8000/build/`, {
+            const response = await fetch(`${apiBaseUrl}/build/`, {
                 method: 'PUT',
                 body: formData,
             });
