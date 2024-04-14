@@ -1,87 +1,99 @@
-// pages/index.js
-import React, {FormEvent, useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Link from "next/link";
 
+
 const IndexPage = () => {
-    const [appVersionOptions, setAppVersionOptions] = useState([]);
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+    const [appVersionOptions, setAppVersionOptions] = useState([]); // For the form
     const [selectedProject, setSelectedProject] = useState('waf');
-    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [isLoading, setIsLoading] = useState(false);
     const [historyData, setHistoryData] = useState([]);
-
-
-    // 获取历史记录
-    const fetchHistory = () => {
-        fetch('http://192.168.1.82:8000/history/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({})
-        })
-            .then(response => response.json())
-            .then(data => {
-                setHistoryData(data.history.history);
-                console.log('History data:', data.history)
-            })
-            .catch(error => console.error('Error fetching history:', error));
+    const [filterVersion, setFilterVersion] = useState('');
+    const [selectedHistoryProject, setSelectedHistoryProject] = useState('');
+    const handleHistoryProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedHistoryProject(event.target.value);
+    };
+    const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedProject(event.target.value);
     };
 
     useEffect(() => {
-        fetchHistory();
-    }, []);
+        const controller = new AbortController();
+        const fetchVersions = async ({projectName, versionSetter}: { projectName: any, versionSetter: any }) => {
+            try {
+                const response = await fetch(`${apiBaseUrl}/get_versions/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_name: projectName }),
+                    signal: controller.signal
+                });
+                const data = await response.json();
+                versionSetter(data.versions);
+            } catch (error) {
+                    console.error('Failed to fetch versions:', error);
+            }
+        };
 
-    // 处理项目选择变更
-    const handleProjectChange = (x: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedProject(x.target.value);
-        // 发送请求获取版本信息
-        fetchVersions({projectName: x.target.value});
-    };
-
-    // 获取版本信息
-    const fetchVersions = ({projectName}: { projectName: any }) => {
-        fetch('http://192.168.1.82:8000/get_versions/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ project_name: projectName }),
-        })
-            .then(response => response.json())
-            .then(data => {
-                setAppVersionOptions(data.versions);
-            });
-    };
-
-    async function onSubmit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault()
-        setIsLoading(true)
-        try {
-            const formData = new FormData(event.currentTarget)
-            const response = await fetch('http://192.168.1.82:8000/build/', {
-                method: 'POST',
-                body: formData,
-            })
-
-            // Handle response if necessary
-            const data = await response.json()
-            console.log('Response:', data)
-            // ...
-        } catch (error) {
-            // Handle error if necessary
-            console.error(error)
-        } finally {
-            setIsLoading(false) // Set loading to false when the request completes
+        if (selectedProject) {
+            fetchVersions({projectName: selectedProject, versionSetter: setAppVersionOptions}).then(r => r);
         }
-    }
 
+        return () => {
+            controller.abort();
+        };
+    }, [selectedProject, apiBaseUrl]);
 
     useEffect(() => {
-        fetchVersions({projectName: selectedProject});
-    }, [selectedProject]);
+        const fetchHistory = async () => {
+            try {
+                const response = await fetch(`${apiBaseUrl}/history/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await response.json();
+                interface HistoryItem {
+                  [index: number]: string | number;
+                }
+                const filteredData = data.history.history.filter((item: HistoryItem) =>
+                    (!selectedHistoryProject || item[3] === selectedHistoryProject) &&
+                    (!filterVersion || item[4] === filterVersion)
+                );
+                setHistoryData(filteredData);
+            } catch (error) {
+                console.error('Error fetching history:', error);
+            }
+        };
 
+        fetchHistory().then(r => r);
+    }, [selectedHistoryProject, filterVersion, apiBaseUrl]);
+
+const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    try {
+        const formData = new FormData(event.currentTarget); // Make sure 'event.currentTarget' is correctly used.
+        const response = await fetch(`${apiBaseUrl}/build/`, {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await response.json();
+        console.log('Response:', data);
+    } catch (error) {
+        console.error('Error on form submit:', error);
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+
+
+
+    // @ts-ignore
     return (
-        <div className="content-container d-flex flex-column align-items-center">
+        <div className="page-container">
             <div className="form-container">
                 <form onSubmit={onSubmit}>
                     {/* 项目选择 */}
@@ -147,58 +159,57 @@ const IndexPage = () => {
                     </div>
 
                     <button className="button" type="submit" disabled={isLoading}>
-                        {isLoading ? 'Loading...' : 'Submit'}
+                        {isLoading ? 'Loading...' : '开始构建'}
                     </button>
                 </form>
-                <div className="version">version: bl_ver</div>
+                <div className="version">version: 0.1.3</div>
             </div>
-            <h1 className="my-4">历史记录</h1>
-            <div className="table-container">
-                <table className="table table-striped">
-                    <thead className="sticky-header">
 
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">次数</th>
-                        <th scope="col">镜像名</th>
-                        <th scope="col">项目</th>
-                        <th scope="col">版本</th>
-                        <th scope="col">开始构建时间</th>
-                        <th scope="col">结束构建时间</th>
-                        <th scope="col">构建状态</th>
-                        <th scope="col">ip</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+
+            <div className="history-container">
+                <h1 className="my-4">历史记录</h1>
+                <div className="filter-container">
+                    <select value={selectedHistoryProject} onChange={handleHistoryProjectChange}
+                            className="form-select">
+                        <option value="">所有项目</option>
+                        <option value="waf">waf</option>
+                        <option value="omas">堡垒机</option>
+                        <option value="lams">日审</option>
+                        <option value="cosa">二合一</option>
+                    </select>
+                    <select value={filterVersion} onChange={e => setFilterVersion(e.target.value)}
+                            className="form-select">
+                        <option value="">所有版本</option>
+                        {appVersionOptions.map(version => (
+                            <option key={version} value={version}>{version}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="card-container">
                     {Array.isArray(historyData) && historyData.length > 0 ? (
                         historyData.map((historyItem: string[], index) => (
+                            <div className="card mb-3" key={index}>
+                                <div className="card-body">
+                                    <h5 className="card-title">{historyItem[2]}</h5>
+                                    <p className="card-text mb-2 text-muted">项目: {historyItem[3]} 版本: {historyItem[4]} </p>
+                                    <p className="card-text">构建状态: {historyItem[7]}</p>
 
-                            <tr key={index}>
-                                <td>{historyItem[0]}</td>
-                                <td>{historyItem[1]}</td>
-                                <td>{historyItem[2]}</td>
-                                <td>{historyItem[3]}</td>
-                                <td>{historyItem[4]}</td>
-                                <td>{historyItem[5]}</td>
-                                <td>{historyItem[6]}</td>
-                                {/*<Link href={`http://192.168.1.82:8000/build/${historyItem[2]}`}>{historyItem[7]}</Link>*/}
-                                {/*return task page*/}
-                                <td>
-                                    <Link href={`/task?deploy_id=${historyItem[2].split('-')[2]}`}>
-                                        {historyItem[7]}
-                                    </Link>
-                                </td>
-                                <td>{historyItem[8]}</td>
-                            </tr>
+                                    <p className="card-text">构建时间: {historyItem[5]}～{historyItem[6]}</p>
+                                    <p className="card-text">次数: {historyItem[1]}</p>
+                                    <p className="card-text">IP: {historyItem[8]}</p>
+
+                                    <Link href={`/task?deploy_id=${historyItem[2]?.split('-')[2]}`}
+                                          className="card-link">查看详情</Link>
+
+                                </div>
+                            </div>
                         ))
                     ) : (
-                        <tr>
-                        <td>loading……</td>
-                        </tr>
+                        <div>Loading...</div>
                     )}
-                    </tbody>
-                </table>
+                </div>
             </div>
+
         </div>
     );
 };
