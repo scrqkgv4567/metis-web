@@ -1,60 +1,80 @@
-// `app/dashboard/page.tsx` is the UI for the `/dashboard` URL
-"use client";  // 声明这是一个 Client Side Render 的 Component. Next.js 默认使用 Server Side Render
-import React, {
-    FormEvent,
-    useEffect,
-    useState
-} from 'react';
-import { useSearchParams } from 'next/navigation'
+'use client'
+import React, { FormEvent, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+
+interface TaskState {
+    deploy_time: string;
+    step: string;
+    state: string;
+    action: string;
+}
+
 const TaskPage = () => {
-    const searchParams = useSearchParams()
-    const deploy_time = searchParams.get('deploy_time')
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-    const [taskState, setTaskState] = useState([]);
-    const fetchTask = () => {
+    const searchParams = useSearchParams();
+    const deploy_id = searchParams.get('deploy_id');
+    const [isLoading, setIsLoading] = useState(false);
+    const [taskState, setTaskState] = useState<TaskState>({} as TaskState);
 
-        try{
-        fetch(`http://192.168.1.82:8000/build/${deploy_time}`, {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json',
-            },
-
-        })  .then(response => response.json())
-            .then(data => {
-                setTaskState(data);
-                console.log('task info:', data)
-            })
-        }catch (error)
-    {
-        console.log('Error fetching task:', error)
-    }
-    }
     useEffect(() => {
-        fetchTask();
-    }, []);
+        const doFetchTask = async () => {
+            setIsLoading(true);
+            try {
+                const response = await fetch(`${apiBaseUrl}/build/${deploy_id}`);
+                const data = await response.json();
+                setTaskState(data);
+            } catch (error) {
+                console.error('Error fetching task:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    async function onSwitch(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault()
+        doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
+    }, [deploy_id, apiBaseUrl]);
+
+    const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setIsLoading(true);
         try {
-            const formData = new FormData(event.currentTarget)
-            // 接口示例：/build/timestamp?action=revoke method: PUT
-            const response = await fetch('http://192.168.1.82:8000/build/', {
+            const formData = new FormData();
+            formData.append('action', 'revoke');
+            formData.append('deploy_time', taskState.deploy_time);
+            const response = await fetch(`${apiBaseUrl}/build/`, {
                 method: 'PUT',
-                body: JSON.stringify({deploy_time: formData.get('deploy_time'), action: formData.get('action')})
-
-            })
-        }catch (error) {
-            // Handle error if necessary
-            console.error(error)
+                body: formData,
+            });
+            const data = await response.json();
+            console.log('Response:', data);
+        } catch (error) {
+            console.error('Error submitting:', error);
+        } finally {
+            setIsLoading(false);
         }
-    }
+    };
 
     return (
-        <div>
-            return <>deploy_time: {deploy_time}</>
+        <div className="container mt-5">
+            <form onSubmit={onSubmit} className="bg-white p-5 rounded shadow-md mx-auto" style={{ maxWidth: '500px' }}>
+                <div className="mb-3">
+                    <label className="form-label font-weight-bold">构建 ID:</label>
+                    <div className="form-control-plaintext">{taskState.deploy_time}</div>
+                </div>
+                <div className="mb-3">
+                    <label className="form-label font-weight-bold">当前任务:</label>
+                    <div className="form-control-plaintext">{taskState.step}</div>
+                </div>
+                <div className="mb-3">
+                    <label className="form-label font-weight-bold">任务状态:</label>
+                    <div className="form-control-plaintext">{taskState.state}</div>
+                </div>
+                <button type="submit" disabled={isLoading} className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} btn-lg btn-block`}>
+                    {isLoading ? 'Loading...' : '停止'}
+                </button>
+            </form>
         </div>
-    )
+    );
 }
 
 export default TaskPage;
