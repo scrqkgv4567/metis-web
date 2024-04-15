@@ -21,6 +21,8 @@ const IndexPage = () => {
         setSelectedHistoryProject(event.target.value);
     };
 
+
+
     // Fetch versions for the main project selection
     useEffect(() => {
         const controller = new AbortController();
@@ -87,6 +89,7 @@ const IndexPage = () => {
                     (!filterVersion || item[4] === filterVersion)
                 );
                 setHistoryData(filteredData);
+
             } catch (error) {
                 console.error('Error fetching history:', error);
             }
@@ -217,9 +220,15 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                 <div className="card-body">
                                     <h5 className="card-title">{historyItem[2]}</h5>
                                     <p className="card-text">项目: {historyItem[3]} 版本: {historyItem[4]} </p>
-                                    <p className="card-text">构建状态: {historyItem[7]}</p>
+                                    <p className="card-text">状态:
+                                        {historyItem[7] === 'STOPPED' && ' 构建已停止'}
+                                        {historyItem[7] === 'RUNNING' && ' 正在运行'}
+                                        {historyItem[7] === 'DELETE' && ' 已删除'}
+                                        {historyItem[7] === 'SUCCESS' && ' 构建成功'}
+                                        {historyItem[7] === 'FAILURE' && ' 失败'}
+                                    </p>
 
-                                    <p className="card-text">构建时间: {historyItem[5]}～{historyItem[6]}</p>
+                                    <p className="card-text">时间: {historyItem[5]}～{historyItem[6]}</p>
                                     <p className="card-text">次数: {historyItem[1]}</p>
                                     <p className="card-text">IP: {historyItem[8]}</p>
 

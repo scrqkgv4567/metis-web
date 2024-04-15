@@ -1,5 +1,5 @@
 'use client'
-import React, { FormEvent, useEffect, useState } from 'react';
+import React, { FormEvent, useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 interface TaskState {
@@ -9,21 +9,22 @@ interface TaskState {
     action: string;
 }
 
-const TaskPage = () => {
+const TaskPageContent  = () => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
     const searchParams = useSearchParams();
     const deploy_id = searchParams.get('deploy_id');
     const [isLoading, setIsLoading] = useState(false);
     const [taskState, setTaskState] = useState<TaskState>({} as TaskState);
-
+    const [action, setAction] = useState('');
     useEffect(() => {
         const doFetchTask = async () => {
             setIsLoading(true);
             try {
                 const response = await fetch(`${apiBaseUrl}/build/${deploy_id}`);
                 const data = await response.json();
-                setTaskState(data);
+                const translatedState = translateTaskState({state: data.state});
+                setTaskState({ ...data, state: translatedState });
             } catch (error) {
                 console.error('Error fetching task:', error);
             } finally {
@@ -33,14 +34,26 @@ const TaskPage = () => {
 
         doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
     }, [deploy_id, apiBaseUrl]);
-
+    function translateTaskState({state}: { state: any }) {
+        switch (state) {
+            case 'STOPPED':
+                return '已停止';
+            case 'RUNNING':
+                return '正在运行';
+            case 'FINISHED':
+                return '已完成';
+            default:
+                return state; // Return original state if no translation found
+        }
+    }
     const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setIsLoading(true);
         try {
             const formData = new FormData();
-            formData.append('action', 'revoke');
+            formData.append('action', action);
             formData.append('deploy_time', taskState.deploy_time);
+            console.log('Submitting:', formData)
             const response = await fetch(`${apiBaseUrl}/build/`, {
                 method: 'PUT',
                 body: formData,
@@ -67,14 +80,32 @@ const TaskPage = () => {
                 </div>
                 <div className="mb-3">
                     <label className="form-label font-weight-bold">任务状态:</label>
-                    <div className="form-control-plaintext">{taskState.state}</div>
+                    <div className="form-control-plaintext">
+                        {taskState.state}
+                    </div>
                 </div>
-                <button type="submit" disabled={isLoading} className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} btn-lg btn-block`}>
-                    {isLoading ? 'Loading...' : '停止'}
-                </button>
+                <div className="btn-group d-flex" role="group">
+                    <button type="submit" disabled={isLoading}
+                            onClick={() => setAction('revoke')}
+                            className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
+                        {isLoading ? 'Loading...' : '停止'}
+                    </button>
+                    <button type="submit" disabled={isLoading}
+                            onClick={() => setAction('delete')}
+                            className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
+                        {isLoading ? 'Loading...' : '删除'}
+                    </button>
+                </div>
             </form>
         </div>
     );
+
 }
+
+const TaskPage = () => (
+    <Suspense fallback={<div>Loading task details...</div>}>
+        <TaskPageContent />
+    </Suspense>
+);
 
 export default TaskPage;
