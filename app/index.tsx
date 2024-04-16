@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+
 import Link from "next/link";
 
 const IndexPage = () => {
@@ -12,7 +14,7 @@ const IndexPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [historyData, setHistoryData] = useState([]);
     const [filterVersion, setFilterVersion] = useState('');
-
+    const [triggerHistoryUpdate, setTriggerHistoryUpdate] = useState(false);
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
     };
@@ -96,7 +98,7 @@ const IndexPage = () => {
         };
 
         fetchHistory().then(r => r);
-    }, [selectedHistoryProject, filterVersion, apiBaseUrl]);
+    }, [selectedHistoryProject, filterVersion, apiBaseUrl, triggerHistoryUpdate]);
 
 const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -109,6 +111,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         });
         const data = await response.json();
         console.log('Response:', data);
+        setTriggerHistoryUpdate(!triggerHistoryUpdate)
     } catch (error) {
         console.error('Error on form submit:', error);
     } finally {
@@ -213,36 +216,42 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                         ))}
                     </select>
                 </div>
-                <div className="card-container">
-                    {Array.isArray(historyData) && historyData.length > 0 ? (
-                        historyData.map((historyItem: string[], index) => (
-                            <div className="card mb-3" key={index}>
-                                <div className="card-body">
-                                    <h5 className="card-title">{historyItem[2]}</h5>
-                                    <p className="card-text">项目: {historyItem[3]} 版本: {historyItem[4]} </p>
-                                    <p className="card-text">状态:
-                                        {historyItem[7] === 'STOPPED' && ' 构建已停止'}
-                                        {historyItem[7] === 'RUNNING' && ' 正在运行'}
-                                        {historyItem[7] === 'DELETE' && ' 已删除'}
-                                        {historyItem[7] === 'SUCCESS' && ' 构建成功'}
-                                        {historyItem[7] === 'FAILURE' && ' 失败'}
-                                    </p>
 
-                                    <p className="card-text">时间: {historyItem[5]}～{historyItem[6]}</p>
-                                    <p className="card-text">次数: {historyItem[1]}</p>
-                                    <p className="card-text">IP: {historyItem[8]}</p>
 
-                                    <Link href={`/task?deploy_id=${historyItem[2]?.split('-')[2]}`}
-                                          className="card-link">查看详情</Link>
+                    <div className="card-container">
+                        {Array.isArray(historyData) && historyData.length > 0 ? (
+                            historyData.map((historyItem: string[], index) => (
 
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div>Loading...</div>
-                    )}
-                </div>
-            </div>
+                                    <div className="card mb-3" key={index}>
+                                        <div className="card-body">
+                                            <h5 className="card-title">{historyItem[2]}</h5>
+                                            <p className="card-text">项目: {historyItem[3]} 版本: {historyItem[4]} </p>
+                                            <p className="card-text">状态:
+                                                {historyItem[7] === 'STOPPED' && ' 构建已停止'}
+                                                {historyItem[7] === 'RUNNING' && ' 正在运行'}
+                                                {historyItem[7] === 'DELETE' && ' 已删除'}
+                                                {historyItem[7] === 'SUCCESS' && ' 构建成功'}
+                                                {historyItem[7] === 'FAILURE' && ' 失败'}
+                                            </p>
+
+                                            <p className="card-text">时间: {historyItem[5]}～{historyItem[6]}</p>
+                                            <p className="card-text">次数: {historyItem[1]}</p>
+                                            <p className="card-text">IP: {historyItem[8]}</p>
+
+                                            <Link href={`/task?deploy_id=${historyItem[2]?.split('-')[2]}`}
+                                                  className="card-link">查看详情</Link>
+
+                                        </div>
+                                    </div>
+
+                            ))
+                        ) : (
+                            <div>Loading...</div>
+                        )}
+                    </div>
+
+
+        </div>
 
         </div>
     );

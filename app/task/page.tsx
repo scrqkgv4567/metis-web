@@ -17,6 +17,7 @@ const TaskPageContent  = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [taskState, setTaskState] = useState<TaskState>({} as TaskState);
     const [action, setAction] = useState('');
+    const [triggerOnsubmit, setTriggerOnsubmit] = useState(false);
     useEffect(() => {
         const doFetchTask = async () => {
             setIsLoading(true);
@@ -26,7 +27,7 @@ const TaskPageContent  = () => {
                 const translatedState = translateTaskState({state: data.state});
                 const translatedStep = translateTaskStep({step: data.step});
 
-                setTaskState({ ...data, state: translatedState });
+                setTaskState({ ...data, state: translatedState, step: translatedStep });
             } catch (error) {
                 console.error('Error fetching task:', error);
             } finally {
@@ -35,19 +36,23 @@ const TaskPageContent  = () => {
         };
 
         doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
-    }, [deploy_id, apiBaseUrl]);
+    }, [deploy_id, apiBaseUrl, triggerOnsubmit]);
     function translateTaskStep({step}: { step: any }) {
         switch (step) {
             case 'preparation_task':
-                return '构建预发布';
+                return '预发布任务';
             case 'build_task':
-                return '构建生产';
+                return '生产任务';
             case 'init_sql':
                 return '初始化 SQL';
             case 'apply_task':
                 return '安装系统';
             case 'check_task_file':
                 return '检查文件完整性';
+            case 'package_task':
+                return 'ISO镜像打包';
+            default:
+                return step; // Return original step if no translation found
         }
     }
     function translateTaskState({state}: { state: any }) {
@@ -76,6 +81,7 @@ const TaskPageContent  = () => {
             });
             const data = await response.json();
             console.log('Response:', data);
+            setTriggerOnsubmit(!triggerOnsubmit);
         } catch (error) {
             console.error('Error submitting:', error);
         } finally {
