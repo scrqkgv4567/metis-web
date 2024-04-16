@@ -195,7 +195,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 
 
             <div className="history-container">
-                <h1 className="my-4">历史记录</h1>
+                <h3 className="my-4">历史构建</h3>
                 <div className="filter-container">
                     <select value={selectedHistoryProject} onChange={handleHistoryProjectChange}
                             className="form-select">

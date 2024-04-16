@@ -24,6 +24,8 @@ const TaskPageContent  = () => {
                 const response = await fetch(`${apiBaseUrl}/build/${deploy_id}`);
                 const data = await response.json();
                 const translatedState = translateTaskState({state: data.state});
+                const translatedStep = translateTaskStep({step: data.step});
+
                 setTaskState({ ...data, state: translatedState });
             } catch (error) {
                 console.error('Error fetching task:', error);
@@ -34,6 +36,20 @@ const TaskPageContent  = () => {
 
         doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
     }, [deploy_id, apiBaseUrl]);
+    function translateTaskStep({step}: { step: any }) {
+        switch (step) {
+            case 'preparation_task':
+                return '构建预发布';
+            case 'build_task':
+                return '构建生产';
+            case 'init_sql':
+                return '初始化 SQL';
+            case 'apply_task':
+                return '安装系统';
+            case 'check_task_file':
+                return '检查文件完整性';
+        }
+    }
     function translateTaskState({state}: { state: any }) {
         switch (state) {
             case 'STOPPED':
