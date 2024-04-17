@@ -63,6 +63,8 @@ const TaskPageContent  = () => {
                 return '正在运行';
             case 'FINISHED':
                 return '已完成';
+            case 'VERIFIED':
+                return '生产通过';
             default:
                 return state; // Return original state if no translation found
         }
@@ -114,7 +116,7 @@ const TaskPageContent  = () => {
                             {isLoading ? 'Loading...' : '停止'}
                         </button>
                     )}
-                    {taskState.step === '安装系统' && taskState.state === '已完成' && (
+                    {taskState.step === '安装系统' && (taskState.state === '已完成' || taskState.state === '生产通过')  && (
                         <button type="submit" disabled={isLoading}
                                 onClick={() => setAction('delete')}
                                 className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
