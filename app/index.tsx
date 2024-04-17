@@ -15,6 +15,8 @@ const IndexPage = () => {
     const [historyData, setHistoryData] = useState([]);
     const [filterVersion, setFilterVersion] = useState('');
     const [triggerHistoryUpdate, setTriggerHistoryUpdate] = useState(false);
+    const [notification, setNotification] = useState({ show: false, message: "" });
+
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
     };
@@ -111,7 +113,10 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         });
         const data = await response.json();
         console.log('Response:', data);
-        setTriggerHistoryUpdate(!triggerHistoryUpdate)
+
+        setTriggerHistoryUpdate(!triggerHistoryUpdate);
+        setNotification({ show: true, message: '构建已开始' });
+        setTimeout(() => setNotification({ show: false, message: "" }), 3000);
     } catch (error) {
         console.error('Error on form submit:', error);
     } finally {
@@ -126,6 +131,9 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     return (
         <div className="page-container">
             <div className="form-container">
+                <div className={`notification ${notification.show ? 'show' : 'hide'}`}>
+                    {notification.message}
+                </div>
                 <form onSubmit={onSubmit}>
                     {/* 项目选择 */}
                     <div className="select-group">
