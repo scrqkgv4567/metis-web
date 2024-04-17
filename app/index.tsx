@@ -150,7 +150,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                     <div className="select-group">
                         <label htmlFor="source6">型号</label>
                         <select name="ware_version" id="source6" className="form-select">
-                            <option value="hard" selected>硬件版</option>
+                            <option value="hard" defaultValue="hard">硬件版</option>
                             <option value="soft">软件版</option>
                             <option value="cloud">云版</option>
                             <option value="soft_cloud">全都要</option>
@@ -159,7 +159,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                     <div className="select-group">
                         <label htmlFor="source3">CPU</label>
                         <select name="cpu" id="source3" className="form-select">
-                            <option value="1" selected>1</option>
+                            <option value="1" defaultValue="1">1</option>
                             <option value="2">2</option>
                             <option value="4">4</option>
                             <option value="8">8</option>
@@ -170,7 +170,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                     <div className="select-group">
                         <label htmlFor="source4">内存</label>
                         <select name="memory" id="source4" className="form-select">
-                            <option value="1" selected>1</option>
+                            <option value="1" defaultValue="1">1</option>
                             <option value="2">2</option>
                             <option value="4">4</option>
                             <option value="8">8</option>
@@ -181,7 +181,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                     <div className="select-group">
                         <label htmlFor="source5">硬盘</label>
                         <select name="disk" id="source5" className="form-select">
-                            <option value="50" selected>50</option>
+                            <option value="50" defaultValue="50">50</option>
                             <option value="100">100</option>
                             <option value="150">150</option>
                             <option value="250">250</option>

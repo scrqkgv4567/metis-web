@@ -107,20 +107,25 @@ const TaskPageContent  = () => {
                     </div>
                 </div>
                 <div className="btn-group d-flex" role="group">
-                    <button type="submit" disabled={isLoading}
-                            onClick={() => setAction('revoke')}
-                            className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
-                        {isLoading ? 'Loading...' : '停止'}
-                    </button>
-                    <button type="submit" disabled={isLoading}
-                            onClick={() => setAction('delete')}
-                            className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
-                        {isLoading ? 'Loading...' : '删除'}
-                    </button>
+                    {taskState.state === '正在运行' && (
+                        <button type="submit" disabled={isLoading}
+                                onClick={() => setAction('revoke')}
+                                className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
+                            {isLoading ? 'Loading...' : '停止'}
+                        </button>
+                    )}
+                    {taskState.step === '安装系统' && taskState.state === '已完成' && (
+                        <button type="submit" disabled={isLoading}
+                                onClick={() => setAction('delete')}
+                                className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
+                            {isLoading ? 'Loading...' : '删除'}
+                        </button>
+                    )}
                 </div>
             </form>
         </div>
     );
+
 
 }
 

@@ -257,3 +257,10 @@ button:disabled {
     opacity: 0;
     transition: opacity 500ms ease-in;
 }
+.hardware-configs {
+    display: flex;
+    justify-content: space-between;
+}
+.hardware-configs > div {
+    flex: 1;
+}
