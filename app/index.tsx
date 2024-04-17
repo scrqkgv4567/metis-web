@@ -231,17 +231,15 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             historyData.map((historyItem: string[], index) => (
 
                                     <div className="card mb-3" key={index}>
+
+                                        {historyItem[7] === 'STOPPED' && <div className="new-badge-stop">停止</div>}
+                                        {historyItem[7] === 'RUNNING' && <div className="new-badge-running">运行</div>}
+                                        {historyItem[7] === 'DELETE' && <div className="new-badge-delete">删除</div>}
+                                        {historyItem[7] === 'SUCCESS' && <div className="new-badge-success">成功</div>}
+                                        {historyItem[7] === 'FAILURE' && <div className="new-badge-failure">失败</div>}
                                         <div className="card-body">
                                             <h5 className="card-title">{historyItem[2]}</h5>
                                             <p className="card-text">项目: {historyItem[3]} 版本: {historyItem[4]} </p>
-                                            <p className="card-text">状态:
-                                                {historyItem[7] === 'STOPPED' && ' 构建已停止'}
-                                                {historyItem[7] === 'RUNNING' && ' 正在运行'}
-                                                {historyItem[7] === 'DELETE' && ' 已删除'}
-                                                {historyItem[7] === 'SUCCESS' && ' 构建成功'}
-                                                {historyItem[7] === 'FAILURE' && ' 失败'}
-                                            </p>
-
                                             <p className="card-text">时间: {historyItem[5]}～{historyItem[6]}</p>
                                             <p className="card-text">次数: {historyItem[1]}</p>
                                             <p className="card-text">IP: {historyItem[8]}</p>

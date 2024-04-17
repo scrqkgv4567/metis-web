@@ -289,3 +289,74 @@ button:disabled {
     transition: opacity 0.5s ease-in-out;
 }
 
+.new-badge-running {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: green;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 0 0 0 10px;
+font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.new-badge-stop {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: red;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 0 0 0 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.new-badge-delete {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #f8f9fa;
+    color: #333;
+    padding: 5px 10px;
+    border-radius: 0 0 0 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.new-badge-success {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #eebb22;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 0 0 0 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.new-badge-failure {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #f11c32;
+    color: #f6f4f4;
+    padding: 5px 10px;
+    border-radius: 0 0 0 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.new-badge-new {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 0 0 0 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
