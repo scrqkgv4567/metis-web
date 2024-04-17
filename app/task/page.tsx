@@ -121,6 +121,13 @@ const TaskPageContent  = () => {
                             {isLoading ? 'Loading...' : '删除'}
                         </button>
                     )}
+                    {taskState.step === '安装系统' && taskState.state === '已完成' && (
+                        <button type="submit" disabled={isLoading}
+                                onClick={() => setAction('verify')}
+                                className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
+                            {isLoading ? 'Loading...' : '生产通过'}
+                        </button>
+                    )}
                 </div>
             </form>
         </div>

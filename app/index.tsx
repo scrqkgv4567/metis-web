@@ -237,16 +237,16 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                         {historyItem[7] === 'DELETE' && <div className="new-badge-delete">删除</div>}
                                         {historyItem[7] === 'SUCCESS' && <div className="new-badge-success">成功</div>}
                                         {historyItem[7] === 'FAILURE' && <div className="new-badge-failure">失败</div>}
+                                        {historyItem[7] === 'VERIFIED' && <div className="new-badge-verify">已验证</div>}
                                         <div className="card-body">
-                                            <h5 className="card-title">{historyItem[2]}</h5>
-                                            <p className="card-text">项目: {historyItem[3]} 版本: {historyItem[4]} </p>
+
+                                            <p className="card-text">项目: {historyItem[3]} </p>
+                                            <p className="card-text">版本: {historyItem[4]} </p>
                                             <p className="card-text">时间: {historyItem[5]}～{historyItem[6]}</p>
                                             <p className="card-text">次数: {historyItem[1]}</p>
                                             <p className="card-text">IP: {historyItem[8]}</p>
-
                                             <Link href={`/task?deploy_id=${historyItem[2]?.split('-')[2]}`}
                                                   className="card-link">查看详情</Link>
-
                                         </div>
                                     </div>
 
@@ -255,8 +255,6 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             <div>Loading...</div>
                         )}
                     </div>
-
-
         </div>
 
         </div>

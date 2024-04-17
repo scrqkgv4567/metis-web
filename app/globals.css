@@ -293,7 +293,7 @@ button:disabled {
     position: absolute;
     top: 0;
     right: 0;
-    background-color: green;
+    background-color: blue;
     color: white;
     padding: 5px 10px;
     border-radius: 0 0 0 10px;
@@ -349,11 +349,11 @@ font-size: 0.75rem;
     font-weight: bold;
 }
 
-.new-badge-new {
+.new-badge-verify {
     position: absolute;
     top: 0;
     right: 0;
-    background-color: #007bff;
+    background-color: green;
     color: white;
     padding: 5px 10px;
     border-radius: 0 0 0 10px;
