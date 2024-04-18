@@ -238,6 +238,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                         {historyItem[7] === 'SUCCESS' && <div className="new-badge-success">成功</div>}
                                         {historyItem[7] === 'FAILURE' && <div className="new-badge-failure">失败</div>}
                                         {historyItem[7] === 'VERIFIED' && <div className="new-badge-verify">已验证</div>}
+                                        {historyItem[7] === 'PASSED' && <div className="new-badge-verify">已验证删除</div>}
                                         <div className="card-body">
 
                                             <p className="card-text">项目: {historyItem[3]} </p>

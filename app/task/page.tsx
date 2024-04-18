@@ -65,6 +65,10 @@ const TaskPageContent  = () => {
                 return '已完成';
             case 'VERIFIED':
                 return '生产通过';
+            case 'DELETE':
+                return '已删除';
+            case 'PASSED':
+                return '生产通过已删除';
             default:
                 return state; // Return original state if no translation found
         }
