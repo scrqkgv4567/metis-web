@@ -78,11 +78,7 @@ const IndexPage = () => {
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                const response = await fetch(`${apiBaseUrl}/history/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
-                });
+                const response = await fetch(`${apiBaseUrl}/history/`);
                 const data = await response.json();
 
                 interface HistoryItem {
