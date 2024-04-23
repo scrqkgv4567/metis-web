@@ -65,7 +65,7 @@ const TaskPageContent  = () => {
                 return '已完成';
             case 'VERIFIED':
                 return '生产通过';
-            case 'DELETE':
+            case 'DELETED':
                 return '已删除';
             case 'PASSED':
                 return '生产通过已删除';

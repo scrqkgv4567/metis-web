@@ -4,6 +4,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import Link from "next/link";
 
+
+interface selectedHost {
+    ip: string;
+    memTotal: double;
+    memUsage: number;
+    cpuTotal: number;
+    cpuUsage: number;
+}
 const IndexPage = () => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -16,6 +24,15 @@ const IndexPage = () => {
     const [filterVersion, setFilterVersion] = useState('');
     const [triggerHistoryUpdate, setTriggerHistoryUpdate] = useState(false);
     const [notification, setNotification] = useState({ show: false, message: "" });
+    const [esxiState, setEsxiState] = useState([]);
+    const [selectedHost, setSelectedHost] = useState<selectedHost>({
+        ip: '',
+        memTotal: 0,
+        memUsage: 0,
+        cpuTotal: 0,
+        cpuUsage: 0
+    });
+    const [wareVersion, setWareVersion] = useState('')
 
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
@@ -98,6 +115,27 @@ const IndexPage = () => {
         fetchHistory().then(r => r);
     }, [selectedHistoryProject, filterVersion, apiBaseUrl, triggerHistoryUpdate]);
 
+    useEffect(() => {
+        const fetchEsxiState = async () => {
+            try {
+                const response = await fetch(`${apiBaseUrl}/esxi_state`);
+                const data = await response.json();
+                // 提取所有的 IP 地址
+                setEsxiState(data.data.map(item => ({
+                    ip: Object.keys(item)[0],
+                    memTotal: item[Object.keys(item)[0]].mem_total,
+                    memUsage: item[Object.keys(item)[0]].mem_usage,
+                    cpuTotal: item[Object.keys(item)[0]].cpu_total,
+                    cpuUsage: item[Object.keys(item)[0]].cpu_usage
+                })));
+                console.log(data);
+            } catch (error) {
+                console.error('Error fetching esxi state:', error);
+            }
+        };
+        fetchEsxiState();
+    }, [apiBaseUrl]);
+
 const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
@@ -120,7 +158,15 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     }
 };
 
+    const handleWareVersionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setWareVersion(event.target.value);
+    }
 
+    const handleSelectChange  = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedIP = event.target.value;
+        const host = esxiState.find(({ip}) => ip === selectedIP);
+        setSelectedHost(host);
+    };
 
 
     // @ts-ignore
@@ -153,7 +199,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                     </div>
                     <div className="select-group">
                         <label htmlFor="source6">型号</label>
-                        <select name="ware_version" id="source6" className="form-select">
+                        <select name="ware_version" id="source6" className="form-select" onChange={handleWareVersionChange}>
                             <option value="hard" defaultValue="hard">硬件版</option>
                             <option value="soft">软件版</option>
                             <option value="cloud">云版</option>
@@ -192,7 +238,27 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             <option value="500">500</option>
                         </select>
                     </div>
-
+                    { (wareVersion === 'soft' || wareVersion === 'soft_cloud') && (
+                        <div>
+                            <div className="select-group">
+                                <label htmlFor="source5">宿主机</label>
+                                <select name="deploy_host" id="source5" className="form-select" onChange={handleSelectChange}>
+                                    <option value="">请选择宿主机</option>
+                                    {esxiState.map((host, index) => (
+                                        <option key={index} value={host.ip}>{host.ip}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {selectedHost && (
+                                <div className="memory-progress">
+                                    <label htmlFor="cpuUsage">CPU使用情况 ({selectedHost.cpuUsage.toFixed(2)} / {selectedHost.cpuTotal.toFixed(2)} GHz)</label>
+                                    <progress id="cpuUsage" max={selectedHost.cpuTotal} value={selectedHost.cpuUsage} style={{ width: '100%' }}></progress>
+                                    <label htmlFor="memoryUsage">内存使用情况 ({selectedHost.memUsage.toFixed(2)} / {selectedHost.memTotal.toFixed(2)} GB)</label>
+                                    <progress id="memoryUsage" max={selectedHost.memTotal} value={selectedHost.memUsage} style={{ width: '100%' }}></progress>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <button className="button" type="submit" disabled={isLoading}>
                         {isLoading ? 'Loading...' : '开始构建'}
                     </button>
