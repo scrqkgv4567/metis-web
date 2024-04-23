@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
 import Link from "next/link";
 
 
+
 interface selectedHost {
     ip: string;
-    memTotal: double;
+    memTotal: number;
     memUsage: number;
     cpuTotal: number;
     cpuUsage: number;
@@ -25,13 +26,8 @@ const IndexPage = () => {
     const [triggerHistoryUpdate, setTriggerHistoryUpdate] = useState(false);
     const [notification, setNotification] = useState({ show: false, message: "" });
     const [esxiState, setEsxiState] = useState([]);
-    const [selectedHost, setSelectedHost] = useState<selectedHost>({
-        ip: '',
-        memTotal: 0,
-        memUsage: 0,
-        cpuTotal: 0,
-        cpuUsage: 0
-    });
+    const [selectedHost, setSelectedHost] = useState<selectedHost | null>(null);
+
     const [wareVersion, setWareVersion] = useState('')
 
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -41,7 +37,6 @@ const IndexPage = () => {
     const handleHistoryProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedHistoryProject(event.target.value);
     };
-
 
 
     // Fetch versions for the main project selection
@@ -121,7 +116,7 @@ const IndexPage = () => {
                 const response = await fetch(`${apiBaseUrl}/esxi_state`);
                 const data = await response.json();
                 // 提取所有的 IP 地址
-                setEsxiState(data.data.map(item => ({
+                setEsxiState(data.data.map((item: any) => ({
                     ip: Object.keys(item)[0],
                     memTotal: item[Object.keys(item)[0]].mem_total,
                     memUsage: item[Object.keys(item)[0]].mem_usage,
@@ -133,7 +128,7 @@ const IndexPage = () => {
                 console.error('Error fetching esxi state:', error);
             }
         };
-        fetchEsxiState();
+        fetchEsxiState().then(r => r);
     }, [apiBaseUrl]);
 
 const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -162,10 +157,17 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setWareVersion(event.target.value);
     }
 
-    const handleSelectChange  = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedIP = event.target.value;
         const host = esxiState.find(({ip}) => ip === selectedIP);
-        setSelectedHost(host);
+
+        // Only set the host if it is found
+        if (host !== undefined) {
+            setSelectedHost(host);
+        } else {
+            // Optionally set to null or handle the undefined case differently
+            setSelectedHost(null);  // Adjust this based on how your state should be handled when no host is found
+        }
     };
 
 
@@ -244,17 +246,24 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                 <label htmlFor="source5">宿主机</label>
                                 <select name="deploy_host" id="source5" className="form-select" onChange={handleSelectChange}>
                                     <option value="">请选择宿主机</option>
-                                    {esxiState.map((host, index) => (
+                                    {esxiState.map((host: any, index) => (
                                         <option key={index} value={host.ip}>{host.ip}</option>
                                     ))}
                                 </select>
                             </div>
                             {selectedHost && (
                                 <div className="memory-progress">
-                                    <label htmlFor="cpuUsage">CPU使用情况 ({selectedHost.cpuUsage.toFixed(2)} / {selectedHost.cpuTotal.toFixed(2)} GHz)</label>
-                                    <progress id="cpuUsage" max={selectedHost.cpuTotal} value={selectedHost.cpuUsage} style={{ width: '100%' }}></progress>
-                                    <label htmlFor="memoryUsage">内存使用情况 ({selectedHost.memUsage.toFixed(2)} / {selectedHost.memTotal.toFixed(2)} GB)</label>
-                                    <progress id="memoryUsage" max={selectedHost.memTotal} value={selectedHost.memUsage} style={{ width: '100%' }}></progress>
+                                    <label htmlFor="cpuUsage">CPU
+                                        ({selectedHost.cpuUsage.toFixed(2)} / {selectedHost.cpuTotal.toFixed(2)} Cores)</label>
+                                    <progress id="cpuUsage" max={selectedHost.cpuTotal} value={selectedHost.cpuUsage}
+                                              style={{width: '100%'}}></progress>
+                                    <label htmlFor="memoryUsage">内存
+                                        ({selectedHost.memUsage.toFixed(2)} / {selectedHost.memTotal.toFixed(2)} GB)</label>
+                                    <progress id="memoryUsage" max={selectedHost.memTotal} value={selectedHost.memUsage}
+                                              style={{width: '100%'}}></progress>
+                                    <label htmlFor="memoryUsage">可用CPU/内存
+                                        ({(selectedHost.cpuTotal - selectedHost.cpuUsage).toFixed(2)} Cores /
+                                        {(selectedHost.memTotal - selectedHost.memUsage).toFixed(2)} GB)</label>
                                 </div>
                             )}
                         </div>
