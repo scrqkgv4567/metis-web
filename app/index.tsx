@@ -1,11 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import { FiLock, FiUnlock } from 'react-icons/fi';
 
 import Link from "next/link";
 
 
 
+interface LockStatus {
+    [key: string]: number; // 或 boolean，如果你希望存储真/假值而非 0 和 1
+}
 interface selectedHost {
     ip: string;
     memTotal: number;
@@ -27,6 +30,7 @@ const IndexPage = () => {
     const [notification, setNotification] = useState({ show: false, message: "" });
     const [esxiState, setEsxiState] = useState([]);
     const [selectedHost, setSelectedHost] = useState<selectedHost | null>(null);
+    const [lockStatus, setLockStatus] = useState<LockStatus>({});
 
     const [wareVersion, setWareVersion] = useState('')
 
@@ -171,6 +175,33 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     };
 
 
+    const toggleLock = async (deployId: any, currentLockStatus: number) => {
+        const newLockStatus = currentLockStatus === 1 ? 0 : 1; // 如果当前状态是1（locked），则解锁，反之则锁定
+
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${apiBaseUrl}/build/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: newLockStatus === 1 ? 'lock' : 'unlock', deploy_time: deployId }),
+            });
+            const data = await response.json();
+            console.log('Lock response:', data);
+
+            // 更新 lockStatus 状态，以 key 为 deployId，value 为新的锁状态
+            setLockStatus(prevStatus => ({
+                ...prevStatus,
+                [deployId]: newLockStatus
+            }));
+        } catch (error) {
+            console.error('Error toggling lock:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
+
     // @ts-ignore
     return (
         <div className="page-container">
@@ -245,7 +276,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             <div className="select-group">
                                 <label htmlFor="source5">宿主机</label>
                                 <select name="deploy_host" id="source5" className="form-select" onChange={handleSelectChange}>
-                                    <option value="">请选择宿主机</option>
+                                    <option value="none">请选择宿主机</option>
                                     {esxiState.map((host: any, index) => (
                                         <option key={index} value={host.ip}>{host.ip}</option>
                                     ))}
@@ -299,35 +330,44 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 
                     <div className="card-container">
                         {Array.isArray(historyData) && historyData.length > 0 ? (
-                            historyData.map((historyItem: string[], index) => (
+                            historyData.map((historyItem: any, index) => (
 
-                                    <div className="card mb-3" key={index}>
+                                <div className="card mb-3" key={index}>
 
-                                        {historyItem[7] === 'STOPPED' && <div className="new-badge-stop">停止</div>}
-                                        {historyItem[7] === 'RUNNING' && <div className="new-badge-running">运行</div>}
-                                        {historyItem[7] === 'DELETE' && <div className="new-badge-delete">删除</div>}
-                                        {historyItem[7] === 'SUCCESS' && <div className="new-badge-success">成功</div>}
-                                        {historyItem[7] === 'FAILURE' && <div className="new-badge-failure">失败</div>}
-                                        {historyItem[7] === 'VERIFIED' && <div className="new-badge-verify">已验证</div>}
-                                        {historyItem[7] === 'PASSED' && <div className="new-badge-verify">已验证删除</div>}
-                                        <div className="card-body">
+                                    {historyItem[7] === 'STOPPED' && <div className="new-badge-stop">停止</div>}
+                                    {historyItem[7] === 'RUNNING' && <div className="new-badge-running">运行</div>}
+                                    {historyItem[7] === 'DELETE' && <div className="new-badge-delete">删除</div>}
+                                    {historyItem[7] === 'SUCCESS' && <div className="new-badge-success">成功</div>}
+                                    {historyItem[7] === 'FAILURE' && <div className="new-badge-failure">失败</div>}
+                                    {historyItem[7] === 'VERIFIED' && <div className="new-badge-verify">已验证</div>}
+                                    {historyItem[7] === 'PASSED' && <div className="new-badge-verify">已验证删除</div>}
+                                    <div className="card-body">
 
-                                            <p className="card-text">项目: {historyItem[3]} </p>
-                                            <p className="card-text">版本: {historyItem[4]} </p>
-                                            <p className="card-text">时间: {historyItem[5]}～{historyItem[6]}</p>
-                                            <p className="card-text">次数: {historyItem[1]}</p>
-                                            <p className="card-text">IP: {historyItem[8]}</p>
-                                            <Link href={`/task?deploy_id=${historyItem[2]?.split('-')[2]}`}
-                                                  className="card-link">查看详情</Link>
-                                        </div>
+                                        <p className="card-text">项目: {historyItem[3]} </p>
+                                        <p className="card-text">版本: {historyItem[4]} </p>
+                                        <p className="card-text">时间: {historyItem[5]}～{historyItem[6]}</p>
+                                        <p className="card-text">次数: {historyItem[1]}</p>
+                                        <p className="card-text">宿主机IP: {historyItem[10]}</p>
+                                        <p className="card-text">IP: {historyItem[8]}</p>
+                                        <Link href={`/task?deploy_id=${historyItem[2]?.split('-')[2]}`}
+                                              className="card-link">查看详情</Link>
                                     </div>
+                                    {(historyItem[7] === 'SUCCESS' || historyItem[7] === 'VERIFIED') && !(historyItem[10] === "127.0.0.1" || historyItem[10] === null) &&(
+                                        <button
+                                            className="lock-button"
+                                            onClick={() => toggleLock(historyItem[2], lockStatus[historyItem[2]] ?? historyItem[9])}
+                                        >
+                                            {lockStatus[historyItem[2]] === 1 ? <FiLock /> : <FiUnlock />}
+                                        </button>
+                                    )}
+                                </div>
 
                             ))
                         ) : (
                             <div>Loading...</div>
                         )}
                     </div>
-        </div>
+            </div>
 
         </div>
     );

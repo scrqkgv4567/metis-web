@@ -360,3 +360,10 @@ font-size: 0.75rem;
     font-size: 0.75rem;
     font-weight: bold;
 }
+
+.lock-button {
+    background-color: #28a745;
+    color: white;
+    top: 250px;
+    right: 10px;
+}

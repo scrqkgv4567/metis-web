@@ -69,6 +69,10 @@ const TaskPageContent  = () => {
                 return '已删除';
             case 'PASSED':
                 return '生产通过已删除';
+            case 'LOCKED':
+                return '锁定';
+            case 'UNLOCKED':
+                return '未锁定';
             default:
                 return state; // Return original state if no translation found
         }
@@ -77,13 +81,14 @@ const TaskPageContent  = () => {
         event.preventDefault();
         setIsLoading(true);
         try {
-            const formData = new FormData();
-            formData.append('action', action);
-            formData.append('deploy_time', taskState.deploy_time);
-            console.log('Submitting:', formData)
+            // const formData = new FormData();
+            // formData.append('action', action);
+            // formData.append('deploy_time', taskState.deploy_time);
+            // console.log('Submitting:', formData)
             const response = await fetch(`${apiBaseUrl}/build/`, {
                 method: 'PUT',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({action: action, deploy_time: taskState.deploy_time}),
             });
             const data = await response.json();
             console.log('Response:', data);
@@ -120,14 +125,14 @@ const TaskPageContent  = () => {
                             {isLoading ? 'Loading...' : '停止'}
                         </button>
                     )}
-                    {taskState.step === '安装系统' && (taskState.state === '已完成' || taskState.state === '生产通过')  && (
+                    {taskState.step === '安装系统' && !(taskState.state === "锁定") && (taskState.state === '已完成' || taskState.state === '生产通过' || taskState.state === '未锁定' )  && (
                         <button type="submit" disabled={isLoading}
                                 onClick={() => setAction('delete')}
                                 className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
                             {isLoading ? 'Loading...' : '删除'}
                         </button>
                     )}
-                    {taskState.step === '安装系统' && taskState.state === '已完成' && (
+                    {taskState.step === '安装系统' &&(taskState.state === '已完成' || taskState.state === '锁定' || taskState.state === '未锁定' )  && (
                         <button type="submit" disabled={isLoading}
                                 onClick={() => setAction('verify')}
                                 className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
