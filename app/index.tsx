@@ -122,10 +122,10 @@ const IndexPage = () => {
                 // 提取所有的 IP 地址
                 setEsxiState(data.data.map((item: any) => ({
                     ip: Object.keys(item)[0],
-                    memTotal: item[Object.keys(item)[0]].mem_total,
-                    memUsage: item[Object.keys(item)[0]].mem_usage,
-                    cpuTotal: item[Object.keys(item)[0]].cpu_total,
-                    cpuUsage: item[Object.keys(item)[0]].cpu_usage
+                    memTotal: item[Object.keys(item)[0]]['mem_total'],
+                    memUsage: item[Object.keys(item)[0]]['mem_usage'],
+                    cpuTotal: item[Object.keys(item)[0]]['cpu_total'],
+                    cpuUsage: item[Object.keys(item)[0]]['cpu_usage']
                 })));
                 console.log(data);
             } catch (error) {
