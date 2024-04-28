@@ -18,6 +18,28 @@ interface selectedHost {
     cpuTotal: number;
     cpuUsage: number;
 }
+
+
+function formatTime(ms: any) {
+    if (ms <= 0) {
+        return "00:00:00";
+    }
+
+    let seconds:any = Math.floor(ms / 1000);
+    let minutes:any = Math.floor(seconds / 60);
+    let hours:any = Math.floor(minutes / 60);
+
+    seconds = seconds % 60;
+    minutes = minutes % 60;
+
+    // Pad with zeros to ensure double digits
+    hours = hours.toString().padStart(2, '0');
+    minutes = minutes.toString().padStart(2, '0');
+    seconds = seconds.toString().padStart(2, '0');
+
+    return `${hours}:${minutes}:${seconds}`;
+}
+
 const IndexPage = () => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -35,6 +57,7 @@ const IndexPage = () => {
     const [lockStatus, setLockStatus] = useState<LockStatus>({});
 
     const [wareVersion, setWareVersion] = useState('soft')
+    const [countdowns, setCountdowns] = useState({});
 
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
@@ -106,17 +129,34 @@ const IndexPage = () => {
                 const data = await response.json();
                 const newLockStatus: Record<string, number> = {};
 
+                const newCountdowns = {};
                 const filteredData = data.history.history.filter((item: HistoryItem) =>
                     (!selectedHistoryProject || item[3] === selectedHistoryProject) &&
                     (!filterVersion || item[4] === filterVersion)
                 );
 
                 // 初始化锁定状态
-                filteredData.forEach((item: HistoryItem) => {
+                filteredData.forEach((item: HistoryItem): any => {
                     newLockStatus[item[2]] = item[9];
+                });
+
+                filteredData.forEach((item: any): any => {
+                    newLockStatus[item[2]] = item[9];
+
+                    // Calculate countdown end time, adding 30 days to the end time
+                    const endTime = item[6] ? new Date(item[6]) : null;
+                    if (endTime) {
+                        endTime.setDate(endTime.getDate() + 30);
+                        // Add 30 days to the end time
+                        const now = new Date(), timeLeft = endTime > now ? endTime.getTime() - now.getTime() : 0;
+                        newCountdowns[item[2]] = timeLeft;
+                    } else {
+                        newCountdowns[item[2]] = 0; // If endTime is null, set countdown to 0
+                    }
                 });
                 setHistoryData(filteredData);
                 setLockStatus(newLockStatus);
+                setCountdowns(newCountdowns);
             } catch (error) {
                 console.error('Error fetching history:', error);
             }
@@ -124,6 +164,45 @@ const IndexPage = () => {
 
         fetchHistory().then(r => r);
     }, [selectedHistoryProject, filterVersion, apiBaseUrl, triggerHistoryUpdate]);
+
+    const triggerRecycleAPI = async (deployId: string) => {
+        try {
+            await fetch(`${apiBaseUrl}/build/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'recycle', deploy_id: deployId }),
+            });
+            console.log(`Resource recycled for deployId: ${deployId}`);
+        } catch (error) {
+            console.error('Error recycling resource:', error);
+        }
+    };
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCountdowns(current => {
+                const updated = {...current};
+                Object.keys(updated).forEach(key => {
+                    if (updated[key] > 0) {
+                        updated[key] -= 1000;
+                    } else if (updated[key] <= 0) {
+                        // Before triggering, make sure all conditions are met
+                        const historyItem = historyData.find(item => item[2] === key);
+                        if (historyItem && historyItem[7] !== "FAILURE" && historyItem[7] !== "DELETE" && historyItem[10] !== "127.0.0.1" &&
+                            historyItem[6] !== null && historyItem[8] !== null && historyItem[9] !== null && historyItem[10] !== null) {
+                            triggerRecycleAPI(key);
+                            updated[key] = 0; // Optionally reset or handle as needed
+                        }
+                    }
+                });
+                return updated;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [historyData]);  // Ensure historyData is in the dependency array if it's not static
+
+
 
     useEffect(() => {
         const fetchEsxiState = async () => {
@@ -375,10 +454,25 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                         <p className="card-text">次数: {historyItem[1]}</p>
                                         <p className="card-text">宿主机IP: {historyItem[10]}</p>
                                         <p className="card-text">IP: {historyItem[8]}</p>
+                                        {   historyItem[10] !== "127.0.0.1" &&
+                                            historyItem[7] !== "FAILURE" &&
+                                            historyItem[7] !== "DELETE" &&
+                                            historyItem[6] !== null &&
+                                            historyItem[8] !== null &&
+                                            historyItem[9] !== null &&
+                                            historyItem[10] !== null &&
+                                            (
+                                                <div className="card-text">
+                                                    删除倒计时: {countdowns[historyItem[2]] ? formatTime(countdowns[historyItem[2]]) : 'Recycling triggered'}
+                                                </div>
+                                            )
+                                        }
+
+
                                         <Link href={`/task?deploy_id=${historyItem[2]?.split('-')[2]}`}
                                               className="card-link">查看详情</Link>
                                     </div>
-                                    {(historyItem[7] === 'SUCCESS' || historyItem[7] === 'VERIFIED') && !(historyItem[11] === "127.0.0.1" || historyItem[10] === null) && (
+                                    {(historyItem[7] === 'SUCCESS' || historyItem[7] === 'VERIFIED') && !(historyItem[10] === "127.0.0.1" || historyItem[11] === null) && (
                                         <button
                                             className="lock-button"
                                             onClick={() => toggleLock(historyItem[2], lockStatus[historyItem[2]] ?? 0)} // 如果未设置，默认为0
