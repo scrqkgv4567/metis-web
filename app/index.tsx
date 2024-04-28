@@ -11,6 +11,8 @@ interface LockStatus {
 }
 interface selectedHost {
     ip: string;
+    diskTotal: number;
+    diskUsage: number;
     memTotal: number;
     memUsage: number;
     cpuTotal: number;
@@ -32,7 +34,7 @@ const IndexPage = () => {
     const [selectedHost, setSelectedHost] = useState<selectedHost | null>(null);
     const [lockStatus, setLockStatus] = useState<LockStatus>({});
 
-    const [wareVersion, setWareVersion] = useState('')
+    const [wareVersion, setWareVersion] = useState('soft')
 
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
@@ -131,6 +133,8 @@ const IndexPage = () => {
                 // 提取所有的 IP 地址
                 setEsxiState(data.data.map((item: any) => ({
                     ip: Object.keys(item)[0],
+                    diskTotal: item[Object.keys(item)[0]]['disk_total'],
+                    diskUsage: item[Object.keys(item)[0]]['disk_usage'],
                     memTotal: item[Object.keys(item)[0]]['mem_total'],
                     memUsage: item[Object.keys(item)[0]]['mem_usage'],
                     cpuTotal: item[Object.keys(item)[0]]['cpu_total'],
@@ -243,44 +247,49 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                     <div className="select-group">
                         <label htmlFor="source6">型号</label>
                         <select name="ware_version" id="source6" className="form-select" onChange={handleWareVersionChange}>
-                            <option value="hard" defaultValue="hard">硬件版</option>
-                            <option value="soft">软件版</option>
+                            <option value="soft" defaultValue="soft">软件版</option>
+                            <option value="hard">硬件版</option>
                             <option value="cloud">云版</option>
                             <option value="soft_cloud">全都要</option>
                         </select>
                     </div>
-                    <div className="select-group">
-                        <label htmlFor="source3">CPU</label>
-                        <select name="cpu" id="source3" className="form-select">
-                            <option value="1" defaultValue="1">1</option>
-                            <option value="2">2</option>
-                            <option value="4">4</option>
-                            <option value="8">8</option>
-                            <option value="16">16</option>
-                            <option value="32">32</option>
-                        </select>
-                    </div>
-                    <div className="select-group">
-                        <label htmlFor="source4">内存</label>
-                        <select name="memory" id="source4" className="form-select">
-                            <option value="1" defaultValue="1">1</option>
-                            <option value="2">2</option>
-                            <option value="4">4</option>
-                            <option value="8">8</option>
-                            <option value="16">16</option>
-                            <option value="32">32</option>
-                        </select>
-                    </div>
-                    <div className="select-group">
-                        <label htmlFor="source5">硬盘</label>
-                        <select name="disk" id="source5" className="form-select">
-                            <option value="50" defaultValue="50">50</option>
-                            <option value="100">100</option>
-                            <option value="150">150</option>
-                            <option value="250">250</option>
-                            <option value="500">500</option>
-                        </select>
-                    </div>
+                    {
+                        !(wareVersion === 'hard' || (wareVersion === 'cloud'))&& (
+                            <>
+                                <div className="select-group">
+                                    <label htmlFor="source3">CPU</label>
+                                    <select name="cpu" id="source3" className="form-select">
+                                        <option value="4" defaultValue="4">4</option>
+                                        <option value="8">8</option>
+                                        <option value="16">16</option>
+                                        <option value="32">32</option>
+                                    </select>
+                                </div>
+
+                                <div className="select-group">
+                                    <label htmlFor="source4">内存</label>
+                                    <select name="memory" id="source4" className="form-select">
+                                        <option value="16" defaultValue="16">16</option>
+                                        <option value="8">8</option>
+                                        <option value="32">32</option>
+                                    </select>
+                                </div>
+
+                                <div className="select-group">
+                                    <label htmlFor="source5">硬盘</label>
+                                    <select name="disk" id="source5" className="form-select">
+                                        <option value="50" defaultValue="50">50</option>
+                                        <option value="100">100</option>
+                                        <option value="150">150</option>
+                                        <option value="250">250</option>
+                                        <option value="500">500</option>
+                                    </select>
+                                </div>
+                            </>
+                        )
+                    }
+
+
                     { (wareVersion === 'soft' || wareVersion === 'soft_cloud') && (
                         <div>
                             <div className="select-group">
@@ -302,9 +311,15 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                         ({selectedHost.memUsage.toFixed(2)} / {selectedHost.memTotal.toFixed(2)} GB)</label>
                                     <progress id="memoryUsage" max={selectedHost.memTotal} value={selectedHost.memUsage}
                                               style={{width: '100%'}}></progress>
-                                    <label htmlFor="memoryUsage">可用CPU/内存
-                                        ({(selectedHost.cpuTotal - selectedHost.cpuUsage).toFixed(2)} Cores /
-                                        {(selectedHost.memTotal - selectedHost.memUsage).toFixed(2)} GB)</label>
+                                    <label htmlFor="memoryUsage">硬盘
+                                        ({selectedHost.diskUsage.toFixed(2)} / {selectedHost.diskTotal.toFixed(2)} GB)</label>
+                                    <progress id="memoryUsage" max={selectedHost.diskTotal} value={selectedHost.diskUsage}
+                                              style={{width: '100%'}}></progress>
+                                    <label htmlFor="memoryUsage">可用
+                                        CPU/内存/硬盘<br/>
+                                        {(selectedHost.cpuTotal - selectedHost.cpuUsage).toFixed(2)} Cores /
+                                        {(selectedHost.memTotal - selectedHost.memUsage).toFixed(2)} GB /
+                                        {(selectedHost.diskTotal - selectedHost.diskUsage).toFixed(2)} GB</label>
                                 </div>
                             )}
                         </div>
