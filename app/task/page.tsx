@@ -63,6 +63,8 @@ const TaskPageContent  = () => {
                 return '正在运行';
             case 'FINISHED':
                 return '已完成';
+            case 'FAILURE':
+                return '失败';
             case 'VERIFIED':
                 return '生产通过';
             case 'DELETED':
@@ -81,10 +83,7 @@ const TaskPageContent  = () => {
         event.preventDefault();
         setIsLoading(true);
         try {
-            // const formData = new FormData();
-            // formData.append('action', action);
-            // formData.append('deploy_time', taskState.deploy_time);
-            // console.log('Submitting:', formData)
+
             const response = await fetch(`${apiBaseUrl}/build/`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },

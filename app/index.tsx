@@ -68,6 +68,8 @@ const IndexPage = () => {
 
     // Fetch versions for the history project selection
     useEffect(() => {
+
+
         const controller = new AbortController();
         const fetchFilterVersion = async () => {
             if (!selectedHistoryProject) {
@@ -92,20 +94,27 @@ const IndexPage = () => {
         return () => controller.abort();
     }, [selectedHistoryProject, apiBaseUrl]);
     useEffect(() => {
+        interface HistoryItem {
+            deploy_id: string;  // 部署的唯一标识符
+            [key: string]: any;  // 允许访问其他任意属性
+        }
         const fetchHistory = async () => {
             try {
                 const response = await fetch(`${apiBaseUrl}/history/`);
                 const data = await response.json();
+                const newLockStatus: Record<string, number> = {};
 
-                interface HistoryItem {
-                  [index: number]: string | number;
-                }
                 const filteredData = data.history.history.filter((item: HistoryItem) =>
                     (!selectedHistoryProject || item[3] === selectedHistoryProject) &&
                     (!filterVersion || item[4] === filterVersion)
                 );
-                setHistoryData(filteredData);
 
+                // 初始化锁定状态
+                filteredData.forEach((item: HistoryItem) => {
+                    newLockStatus[item[2]] = item[9];
+                });
+                setHistoryData(filteredData);
+                setLockStatus(newLockStatus);
             } catch (error) {
                 console.error('Error fetching history:', error);
             }
@@ -175,20 +184,20 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     };
 
 
-    const toggleLock = async (deployId: any, currentLockStatus: number) => {
-        const newLockStatus = currentLockStatus === 1 ? 0 : 1; // 如果当前状态是1（locked），则解锁，反之则锁定
+    const toggleLock = async (deployId: any, currentLockStatus: any) => {
+        const newLockStatus = currentLockStatus === 1 ? 0 : 1; // 在1和0之间切换
 
         setIsLoading(true);
         try {
             const response = await fetch(`${apiBaseUrl}/build/`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: newLockStatus === 1 ? 'lock' : 'unlock', deploy_time: deployId }),
+                body: JSON.stringify({ action: newLockStatus === 1 ? 'lock' : 'unlock', deploy_id: deployId }),
             });
             const data = await response.json();
             console.log('Lock response:', data);
 
-            // 更新 lockStatus 状态，以 key 为 deployId，value 为新的锁状态
+            // 使用 deployId 作为键来更新 lockStatus 状态
             setLockStatus(prevStatus => ({
                 ...prevStatus,
                 [deployId]: newLockStatus
@@ -199,6 +208,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
             setIsLoading(false);
         }
     };
+
 
 
 
@@ -330,6 +340,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 
                     <div className="card-container">
                         {Array.isArray(historyData) && historyData.length > 0 ? (
+
                             historyData.map((historyItem: any, index) => (
 
                                 <div className="card mb-3" key={index}>
@@ -352,13 +363,14 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                         <Link href={`/task?deploy_id=${historyItem[2]?.split('-')[2]}`}
                                               className="card-link">查看详情</Link>
                                     </div>
-                                    {(historyItem[7] === 'SUCCESS' || historyItem[7] === 'VERIFIED') && !(historyItem[10] === "127.0.0.1" || historyItem[10] === null) &&(
+                                    {(historyItem[7] === 'SUCCESS' || historyItem[7] === 'VERIFIED') && !(historyItem[11] === "127.0.0.1" || historyItem[10] === null) && (
                                         <button
                                             className="lock-button"
-                                            onClick={() => toggleLock(historyItem[2], lockStatus[historyItem[2]] ?? historyItem[9])}
+                                            onClick={() => toggleLock(historyItem[2], lockStatus[historyItem[2]] ?? 0)} // 如果未设置，默认为0
                                         >
-                                            {lockStatus[historyItem[2]] === 1 ? <FiLock /> : <FiUnlock />}
+                                            {lockStatus[historyItem[2]] === 1 ? <FiLock/> : <FiUnlock/>}
                                         </button>
+
                                     )}
                                 </div>
 
