@@ -55,9 +55,13 @@ const IndexPage = () => {
     const [esxiState, setEsxiState] = useState([]);
     const [selectedHost, setSelectedHost] = useState<selectedHost | null>(null);
     const [lockStatus, setLockStatus] = useState<LockStatus>({});
-
+    const [appVersion, setAppVersion] = useState('请选择');
     const [wareVersion, setWareVersion] = useState('soft')
+    const [channel, setChannel] = useState('uguardsec');
     const [countdowns, setCountdowns] = useState({});
+
+    const [currentPage, setCurrentPage] = useState(1);
+
 
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
@@ -67,7 +71,13 @@ const IndexPage = () => {
         setSelectedHistoryProject(event.target.value);
     };
 
+    const handleChannelChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setChannel(event.target.value);
+    }
 
+    const handleAppVersionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setAppVersion(event.target.value);
+    }
     // Fetch versions for the main project selection
     useEffect(() => {
         const controller = new AbortController();
@@ -166,16 +176,19 @@ const IndexPage = () => {
     }, [selectedHistoryProject, filterVersion, apiBaseUrl, triggerHistoryUpdate]);
 
     const triggerRecycleAPI = async (deployId: string) => {
-        try {
-            await fetch(`${apiBaseUrl}/build/`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'recycle', deploy_id: deployId }),
-            });
-            console.log(`Resource recycled for deployId: ${deployId}`);
-        } catch (error) {
-            console.error('Error recycling resource:', error);
+        if (1 === 2) {
+            try {
+                await fetch(`${apiBaseUrl}/build/`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'recycle', deploy_id: deployId}),
+                });
+                console.log(`Resource recycled for deployId: ${deployId}`);
+            } catch (error) {
+                console.error('Error recycling resource:', error);
+            }
         }
+
     };
 
     useEffect(() => {
@@ -232,6 +245,14 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     setIsLoading(true);
     try {
         const formData = new FormData(event.currentTarget); // Make sure 'event.currentTarget' is correctly used.
+        formData.append('app_name', selectedProject);
+        formData.append('app_version', appVersion);
+        formData.append('channel', channel);
+        formData.append('ware_version', wareVersion);
+        console.log('App Name:', formData.get('app_name'));
+        console.log('App Version:', formData.get('app_version'));
+        console.log('Channel:', formData.get('channel'));
+        console.log('Ware Version:', formData.get('ware_version'));
         const response = await fetch(`${apiBaseUrl}/build/`, {
             method: 'POST',
             body: formData,
@@ -292,7 +313,13 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         }
     };
 
+    const nextPage = () => {
+        setCurrentPage(2);
+    };
 
+    const previousPage = () => {
+        setCurrentPage(1);
+    };
 
 
     // @ts-ignore
@@ -303,109 +330,123 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                     {notification.message}
                 </div>
                 <form onSubmit={onSubmit}>
-                    {/* 项目选择 */}
-                    <div className="select-group">
-                        <label htmlFor="source1">项目</label>
-                        <select name="app_name" id="source1" className="form-select" onChange={handleProjectChange}
-                                value={selectedProject}>
-                            <option value="waf">waf</option>
-                            <option value="omas">堡垒机</option>
-                            <option value="lams">日审</option>
-                            <option value="cosa">二合一</option>
-                        </select>
-                    </div>
-                    {/* 版本选择 */}
-                    <div className="select-group">
-                        <label htmlFor="source2">版本</label>
-                        <select name="app_version" id="source2" className="form-select">
-                            {appVersionOptions.map(version => (
-                                <option key={version} value={version}>{version}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="select-group">
-                        <label htmlFor="source6">型号</label>
-                        <select name="ware_version" id="source6" className="form-select" onChange={handleWareVersionChange}>
-                            <option value="soft" defaultValue="soft">软件版</option>
-                            <option value="hard">硬件版</option>
-                            <option value="cloud">云版</option>
-                            <option value="soft_cloud">全都要</option>
-                        </select>
-                    </div>
-                    {
-                        !(wareVersion === 'hard' || (wareVersion === 'cloud'))&& (
-                            <>
-                                <div className="select-group">
-                                    <label htmlFor="source3">CPU</label>
-                                    <select name="cpu" id="source3" className="form-select">
-                                        <option value="4" defaultValue="4">4</option>
-                                        <option value="8">8</option>
-                                        <option value="16">16</option>
-                                        <option value="32">32</option>
-                                    </select>
-                                </div>
-
-                                <div className="select-group">
-                                    <label htmlFor="source4">内存</label>
-                                    <select name="memory" id="source4" className="form-select">
-                                        <option value="16" defaultValue="16">16</option>
-                                        <option value="8">8</option>
-                                        <option value="32">32</option>
-                                    </select>
-                                </div>
-
-                                <div className="select-group">
-                                    <label htmlFor="source5">硬盘</label>
-                                    <select name="disk" id="source5" className="form-select">
-                                        <option value="50" defaultValue="50">50</option>
-                                        <option value="100">100</option>
-                                        <option value="150">150</option>
-                                        <option value="250">250</option>
-                                        <option value="500">500</option>
-                                    </select>
-                                </div>
-                            </>
-                        )
-                    }
-
-
-                    { (wareVersion === 'soft' || wareVersion === 'soft_cloud') && (
-                        <div>
+                    {currentPage === 1 && (
+                        <>
+                            {/* 第一页内容 */}
                             <div className="select-group">
-                                <label htmlFor="source5">宿主机</label>
-                                <select name="deploy_host" id="source5" className="form-select" onChange={handleSelectChange}>
-                                    <option value="none">请选择宿主机</option>
-                                    {esxiState.map((host: any, index) => (
-                                        <option key={index} value={host.ip}>{host.ip}</option>
+                                <label htmlFor="source1">项目</label>
+                                <select name="app_name" id="source1" className="form-select" onChange={handleProjectChange}
+                                        value={selectedProject}>
+                                    <option value="waf">waf</option>
+                                    <option value="omas">堡垒机</option>
+                                    <option value="lams">日审</option>
+                                    <option value="dsas">数审</option>
+                                    <option value="cosa">二合一</option>
+                                </select>
+                            </div>
+                            <div className="select-group">
+                                <label htmlFor="source2">版本</label>
+                                <select name="app_version" id="source2" className="form-select" onChange={handleAppVersionChange}>
+                                    {appVersionOptions.map(version => (
+                                        <option key={version} value={version}>{version}</option>
                                     ))}
                                 </select>
                             </div>
-                            {selectedHost && (
-                                <div className="memory-progress">
-                                    <label htmlFor="cpuUsage">CPU
-                                        ({selectedHost.cpuUsage.toFixed(2)} / {selectedHost.cpuTotal.toFixed(2)} Cores)</label>
-                                    <progress id="cpuUsage" max={selectedHost.cpuTotal} value={selectedHost.cpuUsage}
-                                              style={{width: '100%'}}></progress>
-                                    <label htmlFor="memoryUsage">内存
-                                        ({selectedHost.memUsage.toFixed(2)} / {selectedHost.memTotal.toFixed(2)} GB)</label>
-                                    <progress id="memoryUsage" max={selectedHost.memTotal} value={selectedHost.memUsage}
-                                              style={{width: '100%'}}></progress>
-                                    <label htmlFor="memoryUsage">硬盘
-                                        ({selectedHost.diskUsage.toFixed(2)} / {selectedHost.diskTotal.toFixed(2)} GB)</label>
-                                    <progress id="memoryUsage" max={selectedHost.diskTotal} value={selectedHost.diskUsage}
-                                              style={{width: '100%'}}></progress>
-                                    <label htmlFor="memoryUsage">可用
-                                        CPU/内存/硬盘<br/>
-                                        {(selectedHost.cpuTotal - selectedHost.cpuUsage).toFixed(2)} Cores /
-                                        {(selectedHost.memTotal - selectedHost.memUsage).toFixed(2)} GB /
-                                        {(selectedHost.diskTotal - selectedHost.diskUsage).toFixed(2)} GB</label>
+                            <div className="select-group">
+                                <label htmlFor="source6">型号</label>
+                                <select name="ware_version" id="source6" className="form-select"
+                                        onChange={handleWareVersionChange}>
+                                    <option value="soft" defaultValue="soft">软件版</option>
+                                    <option value="hard">硬件版</option>
+                                    <option value="cloud">云版</option>
+                                    <option value="soft_cloud">全都要</option>
+                                </select>
+                            </div>
+                            <div className="select-group">
+                                <label htmlFor="source7">渠道</label>
+                                <select name="channel" id="source7" className="form-select" onChange={handleChannelChange}>
+                                    <option value="uguardsec" defaultValue="uguardsec">天磊</option>
+                                    <option value="sunyainfo">上元信安</option>
+                                    <option value="ruisuyun">锐速云</option>
+                                    <option value="whiteboard">白板</option>
+                                </select>
+                            </div>
+                            <button type="button" onClick={nextPage}>下一页</button>
+                        </>
+                    )}
+
+                    {currentPage === 2 && (
+                        <>
+                            {/* 第二页内容 */}
+                            <div className="select-group">
+                                <label htmlFor="source3">CPU</label>
+                                <select name="cpu" id="source3" className="form-select">
+                                    <option value="4" defaultValue="4">4</option>
+                                    <option value="8">8</option>
+                                    <option value="16">16</option>
+                                    <option value="32">32</option>
+                                </select>
+                            </div>
+                            <div className="select-group">
+                                <label htmlFor="source4">内存</label>
+                                <select name="memory" id="source4" className="form-select">
+                                    <option value="16" defaultValue="16">16</option>
+                                    <option value="8">8</option>
+                                    <option value="32">32</option>
+                                </select>
+                            </div>
+                            <div className="select-group">
+                                <label htmlFor="source5">硬盘</label>
+                                <select name="disk" id="source5" className="form-select">
+                                    <option value="50" defaultValue="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="150">150</option>
+                                    <option value="250">250</option>
+                                    <option value="500">500</option>
+                                </select>
+                            </div>
+                            {(wareVersion === 'soft' || wareVersion === 'soft_cloud') && (
+                                <div>
+                                    <div className="select-group">
+                                        <label htmlFor="source5">宿主机</label>
+                                        <select name="deploy_host" id="source5" className="form-select"
+                                                onChange={handleSelectChange}>
+                                            <option value="none">请选择宿主机</option>
+                                            {esxiState.map((host: any, index) => (
+                                                <option key={index} value={host.ip}>{host.ip}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {selectedHost && (
+                                        <div className="memory-progress">
+                                            <label htmlFor="cpuUsage">CPU
+                                                ({selectedHost.cpuUsage.toFixed(2)} / {selectedHost.cpuTotal.toFixed(2)} Cores)</label>
+                                            <progress id="cpuUsage" max={selectedHost.cpuTotal} value={selectedHost.cpuUsage}
+                                                      style={{width: '100%'}}></progress>
+                                            <label htmlFor="memoryUsage">内存
+                                                ({selectedHost.memUsage.toFixed(2)} / {selectedHost.memTotal.toFixed(2)} GB)</label>
+                                            <progress id="memoryUsage" max={selectedHost.memTotal} value={selectedHost.memUsage}
+                                                      style={{width: '100%'}}></progress>
+                                            <label htmlFor="memoryUsage">硬盘
+                                                ({selectedHost.diskUsage.toFixed(2)} / {selectedHost.diskTotal.toFixed(2)} GB)</label>
+                                            <progress id="memoryUsage" max={selectedHost.diskTotal}
+                                                      value={selectedHost.diskUsage}
+                                                      style={{width: '100%'}}></progress>
+                                            <label htmlFor="memoryUsage">可用
+                                                CPU/内存/硬盘<br/>
+                                                {(selectedHost.cpuTotal - selectedHost.cpuUsage).toFixed(2)} Cores /
+                                                {(selectedHost.memTotal - selectedHost.memUsage).toFixed(2)} GB /
+                                                {(selectedHost.diskTotal - selectedHost.diskUsage).toFixed(2)} GB</label>
+                                        </div>
+                                    )}
                                 </div>
                             )}
-                        </div>
+                            <button type="button"   onClick={previousPage}>上一页</button>
+                            <button className="button"   type="submit" disabled={isLoading}>
+                                {isLoading ? 'Loading...' : '开始构建'}
+                            </button>
+                        </>
                     )}
-                    <button className="button" type="submit" disabled={isLoading}>
-                        {isLoading ? 'Loading...' : '开始构建'}
-                    </button>
                 </form>
                 <div className="version">version: 0.1.3</div>
             </div>
@@ -420,6 +461,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                         <option value="waf">waf</option>
                         <option value="omas">堡垒机</option>
                         <option value="lams">日审</option>
+                        <option value="dsas">数审</option>
                         <option value="cosa">二合一</option>
                     </select>
                     <select value={filterVersion} onChange={e => setFilterVersion(e.target.value)}
