@@ -69,6 +69,8 @@ const IndexPage = () => {
         ware_version: ''
     });
 
+
+
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
     };
@@ -339,6 +341,10 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setCurrentPage(1);
     };
 
+    const show_config = () => {
+        setCurrentPage(3);
+    };
+
     // @ts-ignore
     return (
         <div className="page-container">
@@ -437,11 +443,13 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                         <div className="memory-progress">
                                             <label htmlFor="cpuUsage">CPU
                                                 ({selectedHost.cpuUsage.toFixed(2)} / {selectedHost.cpuTotal.toFixed(2)} Cores)</label>
-                                            <progress id="cpuUsage" max={selectedHost.cpuTotal} value={selectedHost.cpuUsage}
+                                            <progress id="cpuUsage" max={selectedHost.cpuTotal}
+                                                      value={selectedHost.cpuUsage}
                                                       style={{width: '100%'}}></progress>
                                             <label htmlFor="memoryUsage">内存
                                                 ({selectedHost.memUsage.toFixed(2)} / {selectedHost.memTotal.toFixed(2)} GB)</label>
-                                            <progress id="memoryUsage" max={selectedHost.memTotal} value={selectedHost.memUsage}
+                                            <progress id="memoryUsage" max={selectedHost.memTotal}
+                                                      value={selectedHost.memUsage}
                                                       style={{width: '100%'}}></progress>
                                             <label htmlFor="memoryUsage">硬盘
                                                 ({selectedHost.diskUsage.toFixed(2)} / {selectedHost.diskTotal.toFixed(2)} GB)</label>
@@ -457,10 +465,42 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                     )}
                                 </div>
                             )}
-                            <button type="button"   onClick={previousPage}>上一页</button>
-                            <button className="button"   type="submit" disabled={isLoading}>
-                                {isLoading ? 'Loading...' : '开始构建'}
-                            </button>
+                            <button type="button" onClick={previousPage}>上一页</button>
+                            <button type="button" onClick={show_config}>预览</button>
+                             </>
+                            )}
+                            {currentPage === 3 && (
+                                <>
+                                    {/* 第三页内容 */}
+                                    <div className="select-group">
+                                        <label htmlFor="source8">配置</label>
+                                        <select name="config" id="source8" className="form-select">
+                                            <option value="1" defaultValue="1">配置1</option>
+                                            <option value="2">配置2</option>
+                                            <option value="3">配置3</option>
+                                        </select>
+                                    </div>
+                                    <div className="select-group">
+                                        <label htmlFor="source9">配置</label>
+                                        <select name="config" id="source9" className="form-select">
+                                            <option value="1" defaultValue="1">配置1</option>
+                                            <option value="2">配置2</option>
+                                            <option value="3">配置3</option>
+                                        </select>
+                                    </div>
+                                    <div className="select-group">
+                                        <label htmlFor="source10">配置</label>
+                                        <select name="config" id="source10" className="form-select">
+                                            <option value="1" defaultValue="1">配置1</option>
+                                            <option value="2">配置2</option>
+                                            <option value="3">配置3</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" onClick={previousPage}>取消</button>
+                                    <button type="submit" disabled={isLoading}>
+                                        {isLoading ? 'Loading...' : '开始构建'}
+                                    </button>
+
                         </>
                     )}
                 </form>
