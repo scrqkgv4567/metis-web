@@ -55,13 +55,19 @@ const IndexPage = () => {
     const [esxiState, setEsxiState] = useState([]);
     const [selectedHost, setSelectedHost] = useState<selectedHost | null>(null);
     const [lockStatus, setLockStatus] = useState<LockStatus>({});
-    const [appVersion, setAppVersion] = useState('请选择');
+
     const [wareVersion, setWareVersion] = useState('soft')
-    const [channel, setChannel] = useState('uguardsec');
+
     const [countdowns, setCountdowns] = useState({});
 
     const [currentPage, setCurrentPage] = useState(1);
 
+    const [saveFormData, setSaveFormData] = useState({
+        app_name: '',
+        app_version: '',
+        channel: '',
+        ware_version: ''
+    });
 
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
@@ -71,13 +77,6 @@ const IndexPage = () => {
         setSelectedHistoryProject(event.target.value);
     };
 
-    const handleChannelChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setChannel(event.target.value);
-    }
-
-    const handleAppVersionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setAppVersion(event.target.value);
-    }
     // Fetch versions for the main project selection
     useEffect(() => {
         const controller = new AbortController();
@@ -139,7 +138,7 @@ const IndexPage = () => {
                 const data = await response.json();
                 const newLockStatus: Record<string, number> = {};
 
-                const newCountdowns = {};
+                const newCountdowns = {...countdowns};
                 const filteredData = data.history.history.filter((item: HistoryItem) =>
                     (!selectedHistoryProject || item[3] === selectedHistoryProject) &&
                     (!filterVersion || item[4] === filterVersion)
@@ -159,8 +158,10 @@ const IndexPage = () => {
                         endTime.setDate(endTime.getDate() + 30);
                         // Add 30 days to the end time
                         const now = new Date(), timeLeft = endTime > now ? endTime.getTime() - now.getTime() : 0;
+                        // @ts-ignore
                         newCountdowns[item[2]] = timeLeft;
                     } else {
+                        // @ts-ignore
                         newCountdowns[item[2]] = 0; // If endTime is null, set countdown to 0
                     }
                 });
@@ -176,36 +177,41 @@ const IndexPage = () => {
     }, [selectedHistoryProject, filterVersion, apiBaseUrl, triggerHistoryUpdate]);
 
     const triggerRecycleAPI = async (deployId: string) => {
-        if (1 === 2) {
-            try {
-                await fetch(`${apiBaseUrl}/build/`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({action: 'recycle', deploy_id: deployId}),
-                });
-                console.log(`Resource recycled for deployId: ${deployId}`);
-            } catch (error) {
-                console.error('Error recycling resource:', error);
-            }
+        try {
+            await fetch(`${apiBaseUrl}/build/`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'recycle', deploy_id: deployId}),
+            });
+            console.log(`Resource recycled for deployId: ${deployId}`);
+        } catch (error) {
+            console.error('Error recycling resource:', error);
         }
+        };
 
-    };
+
 
     useEffect(() => {
         const timer = setInterval(() => {
             setCountdowns(current => {
                 const updated = {...current};
                 Object.keys(updated).forEach(key => {
+                    // @ts-ignore
                     if (updated[key] > 0) {
+                        // @ts-ignore
                         updated[key] -= 1000;
-                    } else if (updated[key] <= 0) {
-                        // Before triggering, make sure all conditions are met
-                        const historyItem = historyData.find(item => item[2] === key);
-                        if (historyItem && historyItem[7] !== "FAILURE" && historyItem[7] !== "DELETE" && historyItem[10] !== "127.0.0.1" &&
-                            historyItem[6] !== null && historyItem[8] !== null && historyItem[9] !== null && historyItem[10] !== null) {
-                            triggerRecycleAPI(key);
-                            updated[key] = 0; // Optionally reset or handle as needed
-                        }
+                    } else { // @ts-ignore
+                        if (updated[key] <= 0) {
+                                                // Before triggering, make sure all conditions are met
+                                                const historyItem = historyData.find(item => item[2] === key);
+                                                if (historyItem && historyItem[7] !== "FAILURE" && historyItem[7] !== "DELETE" && historyItem[10] !== "127.0.0.1" &&
+                                                    historyItem[6] !== null && historyItem[8] !== null && historyItem[9] !== null && historyItem[10] !== null) {
+                                                    // 暂时注释掉，避免误操作
+                                                    // triggerRecycleAPI(key);
+                                                    // @ts-ignore
+                                                    updated[key] = 0; // Optionally reset or handle as needed
+                                                }
+                                            }
                     }
                 });
                 return updated;
@@ -245,9 +251,10 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     setIsLoading(true);
     try {
         const formData = new FormData(event.currentTarget); // Make sure 'event.currentTarget' is correctly used.
+
         formData.append('app_name', selectedProject);
-        formData.append('app_version', appVersion);
-        formData.append('channel', channel);
+        formData.append('app_version', saveFormData.app_version);
+        formData.append('channel', saveFormData.channel);
         formData.append('ware_version', wareVersion);
         console.log('App Name:', formData.get('app_name'));
         console.log('App Version:', formData.get('app_version'));
@@ -314,13 +321,23 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     };
 
     const nextPage = () => {
+
+        const form = document.querySelector('.form-container form');
+        // 保存第一页的数据
+        const newFormData= {
+            app_name: selectedProject,
+            app_version: (form?.querySelector('#source2') as HTMLSelectElement).value,
+            ware_version: (form?.querySelector('#source6') as HTMLSelectElement).value,
+            channel: (form?.querySelector('#source7') as HTMLSelectElement).value
+        };
+        console.log("newFormData", newFormData);
+        setSaveFormData(newFormData);
         setCurrentPage(2);
     };
 
     const previousPage = () => {
         setCurrentPage(1);
     };
-
 
     // @ts-ignore
     return (
@@ -346,7 +363,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             </div>
                             <div className="select-group">
                                 <label htmlFor="source2">版本</label>
-                                <select name="app_version" id="source2" className="form-select" onChange={handleAppVersionChange}>
+                                <select name="app_version" id="source2" className="form-select">
                                     {appVersionOptions.map(version => (
                                         <option key={version} value={version}>{version}</option>
                                     ))}
@@ -354,8 +371,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             </div>
                             <div className="select-group">
                                 <label htmlFor="source6">型号</label>
-                                <select name="ware_version" id="source6" className="form-select"
-                                        onChange={handleWareVersionChange}>
+                                <select name="ware_version" id="source6" className="form-select">
                                     <option value="soft" defaultValue="soft">软件版</option>
                                     <option value="hard">硬件版</option>
                                     <option value="cloud">云版</option>
@@ -364,7 +380,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             </div>
                             <div className="select-group">
                                 <label htmlFor="source7">渠道</label>
-                                <select name="channel" id="source7" className="form-select" onChange={handleChannelChange}>
+                                <select name="channel" id="source7" className="form-select">
                                     <option value="uguardsec" defaultValue="uguardsec">天磊</option>
                                     <option value="sunyainfo">上元信安</option>
                                     <option value="ruisuyun">锐速云</option>
@@ -501,13 +517,13 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                             historyItem[7] !== "DELETE" &&
                                             historyItem[6] !== null &&
                                             historyItem[8] !== null &&
-                                            historyItem[9] !== null &&
-                                            historyItem[10] !== null &&
-                                            (
-                                                <div className="card-text">
-                                                    删除倒计时: {countdowns[historyItem[2]] ? formatTime(countdowns[historyItem[2]]) : 'Recycling triggered'}
-                                                </div>
-                                            )
+                                            historyItem[9] !== null
+                                            // historyItem[10] !== null &&
+                                            // (
+                                            //     <div className="card-text">
+                                            //         删除倒计时: {countdowns[historyItem[2]] ? formatTime(countdowns[historyItem[2]]) : 'Recycling triggered'}
+                                            //     </div>
+                                            // )
                                         }
 
 

@@ -3,7 +3,7 @@ import React, { FormEvent, useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 interface TaskState {
-    deploy_time: string;
+    deploy_id: string;
     step: string;
     state: string;
     action: string;
@@ -83,11 +83,11 @@ const TaskPageContent  = () => {
         event.preventDefault();
         setIsLoading(true);
         try {
-
+            console.log('Submitting:', action, taskState.deploy_id)
             const response = await fetch(`${apiBaseUrl}/build/`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({action: action, deploy_time: taskState.deploy_time}),
+                body: JSON.stringify({action: action, deploy_id: taskState.deploy_id}),
             });
             const data = await response.json();
             console.log('Response:', data);
@@ -104,7 +104,7 @@ const TaskPageContent  = () => {
             <form onSubmit={onSubmit} className="bg-white p-5 rounded shadow-md mx-auto" style={{ maxWidth: '500px' }}>
                 <div className="mb-3">
                     <label className="form-label font-weight-bold">构建 ID:</label>
-                    <div className="form-control-plaintext">{taskState.deploy_time}</div>
+                    <div className="form-control-plaintext">{taskState.deploy_id}</div>
                 </div>
                 <div className="mb-3">
                     <label className="form-label font-weight-bold">当前任务:</label>
