@@ -72,7 +72,11 @@ const IndexPage = () => {
         app_name: '',
         app_version: '',
         channel: '',
-        ware_version: ''
+        ware_version: '',
+        cpu: '',
+        memory: '',
+        disk: '',
+        deploy_host: ''
     });
     const [projectVersion, setProjectVersion] = useState<ProjectVersion>({data: {}});
 
@@ -279,10 +283,11 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         formData.append('app_version', saveFormData.app_version);
         formData.append('channel', saveFormData.channel);
         formData.append('ware_version', wareVersion);
-        console.log('App Name:', formData.get('app_name'));
-        console.log('App Version:', formData.get('app_version'));
-        console.log('Channel:', formData.get('channel'));
-        console.log('Ware Version:', formData.get('ware_version'));
+        formData.append('cpu', saveFormData.cpu);
+        formData.append('memory', saveFormData.memory);
+        formData.append('disk', saveFormData.disk);
+        formData.append('deploy_host', saveFormData.deploy_host);
+
         const response = await fetch(`${apiBaseUrl}/build/`, {
             method: 'POST',
             body: formData,
@@ -293,6 +298,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setTriggerHistoryUpdate(!triggerHistoryUpdate);
         setNotification({ show: true, message: '构建已开始' });
         setTimeout(() => setNotification({ show: false, message: "" }), 3000);
+        setCurrentPage(1);
     } catch (error) {
         console.error('Error on form submit:', error);
     } finally {
@@ -351,7 +357,11 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
             app_name: selectedProject,
             app_version: (form?.querySelector('#source2') as HTMLSelectElement).value,
             ware_version: (form?.querySelector('#source6') as HTMLSelectElement).value,
-            channel: (form?.querySelector('#source7') as HTMLSelectElement).value
+            channel: (form?.querySelector('#source7') as HTMLSelectElement).value,
+            cpu: '',
+            memory: '',
+            disk: '',
+            deploy_host: ''
         };
         console.log("newFormData", newFormData);
         setSaveFormData(newFormData);
@@ -362,7 +372,18 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setCurrentPage(1);
     };
 
-    const show_config = () => {
+    const project_version = () => {
+        // 保存cpu, memory, disk, deploy_host
+        const form = document.querySelector('.form-container form');
+        const newFormData = {
+            ...saveFormData,
+            cpu: (form?.querySelector('#source3') as HTMLSelectElement).value,
+            memory: (form?.querySelector('#source4') as HTMLSelectElement).value,
+            disk: (form?.querySelector('#source5') as HTMLSelectElement).value,
+            deploy_host: (form?.querySelector('#source6') as HTMLSelectElement).value
+        };
+        console.log("newFormData", newFormData);
+        setSaveFormData(newFormData);
         setCurrentPage(3);
     };
 
@@ -451,8 +472,8 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             {(wareVersion === 'soft' || wareVersion === 'soft_cloud') && (
                                 <div>
                                     <div className="select-group">
-                                        <label htmlFor="source5">宿主机</label>
-                                        <select name="deploy_host" id="source5" className="form-select"
+                                        <label htmlFor="source6">宿主机</label>
+                                        <select name="deploy_host" id="source6" className="form-select"
                                                 onChange={handleSelectChange}>
                                             <option value="none">请选择宿主机</option>
                                             {esxiState.map((host: any, index) => (
@@ -487,15 +508,16 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                 </div>
                             )}
                             <button type="button" onClick={previousPage}>上一页</button>
-                            <button type="button" onClick={show_config}>预览</button>
+                            <button type="button" onClick={project_version}>预览</button>
                              </>
                             )}
                             {currentPage === 3 && (
                                 <>
                                     {/* 第三页内容 */}
                                     <div className='contain-content'>
-                                        <h3>版本信息</h3>
+                                        <h4>{saveFormData.app_name } {saveFormData.app_version}版本信息</h4>
                                         <table className="version-table">
+
                                             <thead>
                                             <tr>
                                                 <th>组件名称</th>
@@ -521,7 +543,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                 </>
                             )}
                 </form>
-                <div className="version">version: 0.1.3</div>
+                <div className="version">version: replacever</div>
             </div>
 
 
