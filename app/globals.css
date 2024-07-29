@@ -367,3 +367,17 @@ font-size: 0.75rem;
     top: 250px;
     right: 10px;
 }
+.version-table {
+    width: 100%;
+border-collapse: collapse;
+}
+
+.version-table th, .version-table td {
+    text-align: left;
+padding: 12px;
+border-bottom: 1px solid #ddd;
+}
+
+.version-table th {
+    background-color: #eee;
+}
