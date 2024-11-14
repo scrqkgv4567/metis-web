@@ -141,12 +141,18 @@ select, input {
     width: 100%; /* 宽度调整 */
 }
 
+contain-content {
+    contain: content;
+    padding-bottom: 100px;
+}
+
 button {
     background-color: #4285F4; /* Google蓝 */
     color: white;
     border: none;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.2s ease-in-out;
+
 }
 
 button:hover {
@@ -158,6 +164,47 @@ button:disabled {
     color: #666666;
     cursor: not-allowed;
 }
+
+.button-group {
+    display: flex;
+    gap: 10px; /* 在按钮之间添加间距 */
+    justify-content: flex-end; /* 将按钮组放在右侧 */
+}
+
+.button-group button {
+    padding-top: 10px;
+    flex: 1;
+}
+
+.cancel-button {
+    background-color: #dc3545; /* 红色 */
+    border: 1px solid #ccc;
+}
+
+.submit-button {
+    background-color: #007bff; /* 蓝色 */
+    border: 1px solid #ccc;
+}
+
+.build-button {
+    background-color: #28a745; /* 绿色 */
+    border: 1px solid #ccc;
+}
+
+/* 悬停状态 */
+.cancel-button:hover {
+    background-color: #c82333;
+
+}
+
+.submit-button:hover {
+    background-color: #0056b3;
+}
+
+.build-button:hover {
+    background-color: #218838;
+}
+
 
 @media (min-width: 768px) {
     .select-group {
@@ -381,3 +428,4 @@ border-bottom: 1px solid #ddd;
 .version-table th {
     background-color: #eee;
 }
+

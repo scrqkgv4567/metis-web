@@ -76,7 +76,8 @@ const IndexPage = () => {
         cpu: '',
         memory: '',
         disk: '',
-        deploy_host: ''
+        deploy_host: '',
+        cloud_platform: ''
     });
     const [projectVersion, setProjectVersion] = useState<ProjectVersion>({data: {}});
 
@@ -166,30 +167,31 @@ const IndexPage = () => {
                 const newLockStatus: Record<string, number> = {};
 
                 const newCountdowns = {...countdowns};
-                const filteredData = data.history.history.filter((item: HistoryItem) =>
-                    (!selectedHistoryProject || item[3] === selectedHistoryProject) &&
-                    (!filterVersion || item[4] === filterVersion)
+                const filteredData = data.history.filter((item: HistoryItem) =>
+                    (!selectedHistoryProject || item['app_name'] === selectedHistoryProject) &&
+                    (!filterVersion || item['app_version'] === filterVersion)
                 );
+
 
                 // 初始化锁定状态
                 filteredData.forEach((item: HistoryItem): any => {
-                    newLockStatus[item[2]] = item[9];
+                    newLockStatus[item['iso_name']] = item['is_lock'];
                 });
 
                 filteredData.forEach((item: any): any => {
-                    newLockStatus[item[2]] = item[9];
+                    newLockStatus[item['iso_name']] = item['is_lock'];
 
                     // Calculate countdown end time, adding 30 days to the end time
-                    const endTime = item[6] ? new Date(item[6]) : null;
+                    const endTime = item['end_build_time'] ? new Date(item['end_build_time']) : null;
                     if (endTime) {
                         endTime.setDate(endTime.getDate() + 30);
                         // Add 30 days to the end time
                         const now = new Date(), timeLeft = endTime > now ? endTime.getTime() - now.getTime() : 0;
                         // @ts-ignore
-                        newCountdowns[item[2]] = timeLeft;
+                        newCountdowns[item['iso_name']] = timeLeft;
                     } else {
                         // @ts-ignore
-                        newCountdowns[item[2]] = 0; // If endTime is null, set countdown to 0
+                        newCountdowns[item['iso_name']] = 0; // If endTime is null, set countdown to 0
                     }
                 });
                 setHistoryData(filteredData);
@@ -230,9 +232,9 @@ const IndexPage = () => {
                     } else { // @ts-ignore
                         if (updated[key] <= 0) {
                                                 // Before triggering, make sure all conditions are met
-                                                const historyItem = historyData.find(item => item[2] === key);
-                                                if (historyItem && historyItem[7] !== "FAILURE" && historyItem[7] !== "DELETE" && historyItem[10] !== "127.0.0.1" &&
-                                                    historyItem[6] !== null && historyItem[8] !== null && historyItem[9] !== null && historyItem[10] !== null) {
+                                                const historyItem = historyData.find(item => item['iso_name'] === key);
+                                                if (historyItem && historyItem['state'] !== "FAILURE" && historyItem['state'] !== "DELETE" && historyItem['deploy_host'] !== "127.0.0.1" &&
+                                                    historyItem['end_build_time'] !== null && historyItem['ip'] !== null && historyItem['is_lock'] !== null && historyItem['deploy_host'] !== null) {
                                                     // 暂时注释掉，避免误操作
                                                     // triggerRecycleAPI(key);
                                                     // @ts-ignore
@@ -265,14 +267,39 @@ const IndexPage = () => {
                     cpuTotal: item[Object.keys(item)[0]]['cpu_total'],
                     cpuUsage: item[Object.keys(item)[0]]['cpu_usage']
                 })));
-                console.log(data);
+
             } catch (error) {
                 console.error('Error fetching esxi state:', error);
             }
         };
         fetchEsxiState().then(r => r);
     }, [apiBaseUrl]);
+const proBuild = async () => {
+    setIsLoading(true);
+    try {
+        const formData = new FormData();
+        formData.append('app_name', selectedProject);
+        formData.append('app_version', saveFormData.app_version);
+        formData.append('channel', saveFormData.channel);
+        formData.append('ware_version', saveFormData.ware_version);
+        formData.append('cloud_platform', saveFormData.cloud_platform);
 
+        const response = await fetch(`${apiBaseUrl}/probuild/`, {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await response.json();
+
+        setTriggerHistoryUpdate(!triggerHistoryUpdate);
+        setNotification({ show: true, message: '生产构建已开始' });
+        setTimeout(() => setNotification({ show: false, message: "" }), 3000);
+        setCurrentPage(1);
+    } catch (error) {
+        console.error('Error on form submit:', error);
+    } finally {
+        setIsLoading(false);
+    }
+}
 const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
@@ -282,7 +309,8 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         formData.append('app_name', selectedProject);
         formData.append('app_version', saveFormData.app_version);
         formData.append('channel', saveFormData.channel);
-        formData.append('ware_version', wareVersion);
+        formData.append('ware_version', saveFormData.ware_version);
+        formData.append('cloud_platform', saveFormData.cloud_platform);
         formData.append('cpu', saveFormData.cpu);
         formData.append('memory', saveFormData.memory);
         formData.append('disk', saveFormData.disk);
@@ -293,10 +321,10 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
             body: formData,
         });
         const data = await response.json();
-        console.log('Response:', data);
+
 
         setTriggerHistoryUpdate(!triggerHistoryUpdate);
-        setNotification({ show: true, message: '构建已开始' });
+        setNotification({ show: true, message: '验证构建已开始' });
         setTimeout(() => setNotification({ show: false, message: "" }), 3000);
         setCurrentPage(1);
     } catch (error) {
@@ -306,9 +334,16 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     }
 };
 
+    const [isPreviewButton, setIsPreviewButton] = useState(false);
+    const [cloudPlatform, setCloudPlatform] = useState('none');
+
     const handleWareVersionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setWareVersion(event.target.value);
+        setIsPreviewButton(event.target.value !== 'soft');
+        setCloudPlatform(event.target.value === 'cloud' ? 'cloud' : 'none');
     }
+
+
 
     const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedIP = event.target.value;
@@ -358,33 +393,42 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
             app_version: (form?.querySelector('#source2') as HTMLSelectElement).value,
             ware_version: (form?.querySelector('#source6') as HTMLSelectElement).value,
             channel: (form?.querySelector('#source7') as HTMLSelectElement).value,
+            cloud_platform: (form?.querySelector('#source8') as HTMLSelectElement)?.value ?? '',
             cpu: '',
             memory: '',
             disk: '',
             deploy_host: ''
         };
-        console.log("newFormData", newFormData);
+
         setSaveFormData(newFormData);
         setCurrentPage(2);
     };
 
     const previousPage = () => {
         setCurrentPage(1);
+        setIsPreviewButton(false);
     };
 
     const project_version = () => {
         // 保存cpu, memory, disk, deploy_host
-        const form = document.querySelector('.form-container form');
-        const newFormData = {
-            ...saveFormData,
-            cpu: (form?.querySelector('#source3') as HTMLSelectElement).value,
-            memory: (form?.querySelector('#source4') as HTMLSelectElement).value,
-            disk: (form?.querySelector('#source5') as HTMLSelectElement).value,
-            deploy_host: (form?.querySelector('#source6') as HTMLSelectElement).value
-        };
-        console.log("newFormData", newFormData);
-        setSaveFormData(newFormData);
-        setCurrentPage(3);
+        if (! isPreviewButton) {
+            const form = document.querySelector('.form-container form');
+            const newFormData = {
+                ...saveFormData,
+                cpu: (form?.querySelector('#source3') as HTMLSelectElement).value,
+                memory: (form?.querySelector('#source4') as HTMLSelectElement).value,
+                disk: (form?.querySelector('#source5') as HTMLSelectElement).value,
+                deploy_host: (form?.querySelector('#source6') as HTMLSelectElement).value,
+                cloud_platform: (form?.querySelector('#source8') as HTMLSelectElement)?.value ?? '',
+            }
+
+            setSaveFormData(newFormData);
+            setCurrentPage(3);
+        }else {
+            nextPage()
+            setCurrentPage(3)
+        }
+
     };
 
     // @ts-ignore
@@ -397,49 +441,67 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                 <form onSubmit={onSubmit}>
                     {currentPage === 1 && (
                         <>
-                            {/* 第一页内容 */}
-                            <div className="select-group">
-                                <label htmlFor="source1">项目</label>
-                                <select name="app_name" id="source1" className="form-select" onChange={handleProjectChange}
-                                        value={selectedProject}>
-                                    <option value="waf">waf</option>
-                                    <option value="omas">堡垒机</option>
-                                    <option value="lams">日审</option>
-                                    <option value="dsas">数审</option>
-                                    <option value="cosa">二合一</option>
-                                </select>
-                            </div>
-                            <div className="select-group">
-                                <label htmlFor="source2">版本</label>
-                                <select name="app_version" id="source2" className="form-select">
-                                    {appVersionOptions.map(version => (
-                                        <option key={version} value={version}>{version}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="select-group">
-                                <label htmlFor="source6">型号</label>
-                                <select name="ware_version" id="source6" className="form-select">
-                                    <option value="soft" defaultValue="soft">软件版</option>
-                                    <option value="hard">硬件版</option>
-                                    <option value="cloud">云版</option>
-                                    <option value="soft_cloud">全都要</option>
-                                </select>
-                            </div>
-                            <div className="select-group">
-                                <label htmlFor="source7">渠道</label>
-                                <select name="channel" id="source7" className="form-select">
-                                    <option value="uguardsec" defaultValue="uguardsec">天磊</option>
-                                    <option value="sunyainfo">上元信安</option>
-                                    <option value="ruisuyun">锐速云</option>
-                                    <option value="whiteboard">白板</option>
-                                </select>
-                            </div>
-                            <button type="button" onClick={nextPage}>下一页</button>
-                        </>
-                    )}
+                        {/* 第一页内容 */}
+                        <div className="select-group">
+                            <label htmlFor="source1">项目</label>
+                            <select name="app_name" id="source1" className="form-select" onChange={handleProjectChange}
+                                    value={selectedProject}>
+                                <option value="waf">waf</option>
+                                <option value="omas">堡垒机</option>
+                                <option value="lams">日审</option>
+                                <option value="dsas">数审</option>
+                                <option value="cosa">二合一</option>
+                            </select>
+                        </div>
+                        <div className="select-group">
+                            <label htmlFor="source2">版本</label>
+                            <select name="app_version" id="source2" className="form-select">
+                                {appVersionOptions.map(version => (
+                                    <option key={version} value={version}>{version}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="select-group">
+                            <label htmlFor="source6">型号</label>
+                            <select name="ware_version" id="source6" className="form-select"
+                                    onChange={handleWareVersionChange}>
+                                <option value="soft" defaultValue="soft">软件版</option>
+                                <option value="hard">硬件版</option>
+                                <option value="cloud">云版</option>
+                                <option value="soft_cloud">全都要</option>
+                            </select>
+                        </div>
 
-                    {currentPage === 2 && (
+                            {cloudPlatform === 'cloud' && (
+                                // 阿里云 腾讯云 华为云
+
+                                    <div className="select-group">
+                                        <label htmlFor="source8">平台</label>
+                                        <select name="cloud_platform" id="source8" className="form-select">
+                                            <option value="aliyun" defaultValue="aliyun">阿里云</option>
+                                            <option value="tencent" defaultValue="tencent">腾讯云</option>
+                                            <option value="huawei" defaultValue="huawei">华为云</option>
+                                        </select>
+                                    </div>
+                            )}
+                        <div className="select-group">
+                            <label htmlFor="source7">渠道</label>
+                            <select name="channel" id="source7" className="form-select">
+                                <option value="uguardsec" defaultValue="uguardsec">天磊</option>
+                                <option value="sunyainfo">上元信安</option>
+                                <option value="ruisuyun">锐速云</option>
+                                <option value="whiteboard">白板</option>
+                            </select>
+                        </div>
+                        {(isPreviewButton) && (
+                            <button type="button" onClick={project_version}>预览</button>
+                        ) || (
+                            <button type="button" onClick={nextPage}>下一页</button>
+                    )}
+                </>
+                )}
+
+                {currentPage === 2 && (
                         <>
                             {/* 第二页内容 */}
                             <div className="select-group">
@@ -511,37 +573,40 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             <button type="button" onClick={project_version}>预览</button>
                              </>
                             )}
-                            {currentPage === 3 && (
-                                <>
-                                    {/* 第三页内容 */}
-                                    <div className='contain-content'>
-                                        <h4>{saveFormData.app_name } {saveFormData.app_version}版本信息</h4>
-                                        <table className="version-table">
+                    {currentPage === 3 && (
+                        <>
+                            {/* 第三页内容 */}
+                            <div className='contain-content'>
+                                <h4>{saveFormData.app_name} {saveFormData.app_version}版本信息</h4>
+                                <table className="version-table">
+                                    <thead>
+                                    <tr>
+                                        <th>组件名称</th>
+                                        <th>版本号</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {Object.keys(projectVersion.data).map((key) => (
+                                        <tr key={key}>
+                                            <td>{key}</td>
+                                            <td>{projectVersion.data[key]}</td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
 
-                                            <thead>
-                                            <tr>
-                                                <th>组件名称</th>
-                                                <th>版本号</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {Object.keys(projectVersion.data).map((key) => (
-                                                <tr key={key}>
-                                                    <td>{key}</td>
-                                                    <td>{projectVersion.data[key]}</td>
-                                                </tr>
-                                            ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                            <div className="button-group">
+                                <button type="button" onClick={previousPage} className="cancel-button">取消</button>
+                                <button type="submit" disabled={isLoading} className="submit-button">
+                                    {isLoading ? 'Loading...' : '验证构建'}
+                                </button>
+                                <button type="button" onClick={proBuild} className="build-button">生产构建</button>
+                            </div>
 
-                                    <button type="button" onClick={previousPage}>取消</button>
-                                    <button type="submit" disabled={isLoading}>
-                                        {isLoading ? 'Loading...' : '开始构建'}
-                                    </button>
+                        </>
+                    )}
 
-                                </>
-                            )}
                 </form>
                 <div className="version">version: replacever</div>
             </div>
@@ -576,45 +641,45 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 
                                 <div className="card mb-3" key={index}>
 
-                                    {historyItem[7] === 'STOPPED' && <div className="new-badge-stop">停止</div>}
-                                    {historyItem[7] === 'RUNNING' && <div className="new-badge-running">运行</div>}
-                                    {historyItem[7] === 'DELETE' && <div className="new-badge-delete">删除</div>}
-                                    {historyItem[7] === 'SUCCESS' && <div className="new-badge-success">成功</div>}
-                                    {historyItem[7] === 'FAILURE' && <div className="new-badge-failure">失败</div>}
-                                    {historyItem[7] === 'VERIFIED' && <div className="new-badge-verify">已验证</div>}
-                                    {historyItem[7] === 'PASSED' && <div className="new-badge-verify">已验证删除</div>}
+                                    {historyItem['state'] === 'STOPPED' && <div className="new-badge-stop">停止</div>}
+                                    {historyItem['state'] === 'RUNNING' && <div className="new-badge-running">运行</div>}
+                                    {historyItem['state'] === 'DELETE' && <div className="new-badge-delete">删除</div>}
+                                    {historyItem['state'] === 'SUCCESS' && <div className="new-badge-success">成功</div>}
+                                    {historyItem['state'] === 'FAILURE' && <div className="new-badge-failure">失败</div>}
+                                    {historyItem['state'] === 'VERIFIED' && <div className="new-badge-verify">已验证</div>}
+                                    {historyItem['state'] === 'PASSED' && <div className="new-badge-verify">已验证删除</div>}
                                     <div className="card-body">
 
-                                        <p className="card-text">项目: {historyItem[3]} </p>
-                                        <p className="card-text">版本: {historyItem[4]} </p>
-                                        <p className="card-text">时间: {historyItem[5]}～{historyItem[6]}</p>
-                                        <p className="card-text">次数: {historyItem[1]}</p>
-                                        <p className="card-text">宿主机IP: {historyItem[10]}</p>
-                                        <p className="card-text">IP: {historyItem[8]}</p>
-                                        {   historyItem[10] !== "127.0.0.1" &&
-                                            historyItem[7] !== "FAILURE" &&
-                                            historyItem[7] !== "DELETE" &&
-                                            historyItem[6] !== null &&
-                                            historyItem[8] !== null &&
-                                            historyItem[9] !== null
-                                            // historyItem[10] !== null &&
+                                        <p className="card-text">项目: {historyItem['app_name']} </p>
+                                        <p className="card-text">版本: {historyItem['app_version']} </p>
+                                        <p className="card-text">时间: {historyItem['start_build_time']}～{historyItem['end_build_time']}</p>
+                                        <p className="card-text">次数: {historyItem['ci_count']}</p>
+                                        <p className="card-text">宿主机IP: {historyItem['deploy_host']}</p>
+                                        <p className="card-text">IP: {historyItem['ip']}</p>
+                                        {   historyItem['deploy_host'] !== "127.0.0.1" &&
+                                            historyItem['state'] !== "FAILURE" &&
+                                            historyItem['state'] !== "DELETE" &&
+                                            historyItem['end_build_time'] !== null &&
+                                            historyItem['ip'] !== null &&
+                                            historyItem['is_lock'] !== null
+                                            // historyItem['deploy_host'] !== null &&
                                             // (
                                             //     <div className="card-text">
-                                            //         删除倒计时: {countdowns[historyItem[2]] ? formatTime(countdowns[historyItem[2]]) : 'Recycling triggered'}
+                                            //         删除倒计时: {countdowns[historyItem['iso_name']] ? formatTime(countdowns[historyItem['iso_name']]) : 'Recycling triggered'}
                                             //     </div>
                                             // )
                                         }
 
 
-                                        <Link href={`/task?deploy_id=${historyItem[2]?.split('-')[2]}`}
+                                        <Link href={`/task?deploy_id=${historyItem['iso_name']?.split('-')[2]}`}
                                               className="card-link">查看详情</Link>
                                     </div>
-                                    {(historyItem[7] === 'SUCCESS' || historyItem[7] === 'VERIFIED') && !(historyItem[10] === "127.0.0.1" || historyItem[11] === null) && (
+                                    {(historyItem['state'] === 'SUCCESS' || historyItem['state'] === 'VERIFIED') && !(historyItem['deploy_host'] === "127.0.0.1" || historyItem[11] === null) && (
                                         <button
                                             className="lock-button"
-                                            onClick={() => toggleLock(historyItem[2], lockStatus[historyItem[2]] ?? 0)} // 如果未设置，默认为0
+                                            onClick={() => toggleLock(historyItem['iso_name'], lockStatus[historyItem['iso_name']] ?? 0)} // 如果未设置，默认为0
                                         >
-                                            {lockStatus[historyItem[2]] === 1 ? <FiLock/> : <FiUnlock/>}
+                                            {lockStatus[historyItem['iso_name']] === 1 ? <FiLock/> : <FiUnlock/>}
                                         </button>
 
                                     )}
