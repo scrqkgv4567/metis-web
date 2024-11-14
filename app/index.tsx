@@ -537,7 +537,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                         <label htmlFor="source6">宿主机</label>
                                         <select name="deploy_host" id="source6" className="form-select"
                                                 onChange={handleSelectChange}>
-                                            <option value="none">请选择宿主机</option>
+
                                             {esxiState.map((host: any, index) => (
                                                 <option key={index} value={host.ip}>{host.ip}</option>
                                             ))}
@@ -589,14 +589,23 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                     <tbody>
                                     {Object.keys(projectVersion.data).map((key) => (
                                         <tr key={key}>
-                                            <td>{key}</td>
-                                            <td>{projectVersion.data[key].split('@')[0]}</td>
-                                            <td>latest</td>
+                                            <td>{key.split('@')[0]}</td>
+                                            <td>{key.split('@')[1]}</td>
+                                            <td>
+                                                <select>
+                                                    {Object.keys(projectVersion.data[key]).map((commitId) => (
+                                                        <option key={commitId} value={commitId}>
+                                                            {projectVersion.data[key][commitId]}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
                                         </tr>
                                     ))}
                                     </tbody>
                                 </table>
                             </div>
+
 
                             <div className="button-group">
                                 <button type="button" onClick={previousPage} className="cancel-button">取消</button>
