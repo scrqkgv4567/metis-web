@@ -1,14 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+<<<<<<< HEAD
 import { FiLock, FiUnlock } from "react-icons/fi";
+=======
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
 
-import Link from "next/link";
-
-
-
-interface LockStatus {
-    [key: string]: number; // 或 boolean，如果你希望存储真/假值而非 0 和 1
-}
 interface selectedHost {
     ip: string;
     diskTotal: number;
@@ -19,6 +15,7 @@ interface selectedHost {
     cpuUsage: number;
 }
 
+<<<<<<< HEAD
 interface projects {
 
 }
@@ -42,36 +39,40 @@ function formatTime(ms: any) {
     seconds = seconds.toString().padStart(2, '0');
 
     return `${hours}:${minutes}:${seconds}`;
+=======
+interface CommitData {
+    [commitId: string]: string;
+}
+interface ProjectVersion {
+    data: {
+        [key: string]: CommitData;
+    };
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
 }
 
 const IndexPage = () => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
     const [appVersionOptions, setAppVersionOptions] = useState([]);
-    const [filterVersionOptions, setFilterVersionOptions] = useState([]);
     const [selectedProject, setSelectedProject] = useState('waf');
-    const [selectedHistoryProject, setSelectedHistoryProject] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [historyData, setHistoryData] = useState([]);
-    const [filterVersion, setFilterVersion] = useState('');
-    const [triggerHistoryUpdate, setTriggerHistoryUpdate] = useState(false);
     const [notification, setNotification] = useState({ show: false, message: "" });
     const [esxiState, setEsxiState] = useState([]);
     const [selectedHost, setSelectedHost] = useState<selectedHost | null>(null);
-    const [lockStatus, setLockStatus] = useState<LockStatus>({});
-
     const [wareVersion, setWareVersion] = useState('soft')
-
-    const [countdowns, setCountdowns] = useState({});
-
     const [currentPage, setCurrentPage] = useState(1);
-
     const [saveFormData, setSaveFormData] = useState({
         app_name: '',
         app_version: '',
         channel: '',
-        ware_version: ''
+        ware_version: '',
+        cpu: '',
+        memory: '',
+        disk: '',
+        deploy_host: '',
+        cloud_platform: ''
     });
+    const [projectVersion, setProjectVersion] = useState<ProjectVersion>({data: {}});
 
     interface ProjectVersion {
         data: {
@@ -79,6 +80,7 @@ const IndexPage = () => {
         };
     }
 
+<<<<<<< HEAD
     const [projectVersion, setProjectVersion] = useState<ProjectVersion>({data: {}});
 
     useEffect(() => {
@@ -94,17 +96,33 @@ const IndexPage = () => {
         };
 
         fetchData();
+=======
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true);
+            try {
+                // 假设这是获取数据的 API URL
+                const response = await fetch(`${apiBaseUrl}/project_version`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({app_name: saveFormData.app_name, app_version: saveFormData.app_version})
+                });
+                const data = await response.json();
+                setProjectVersion(data);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchData().then(r => r);
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
     }, [saveFormData.app_name, saveFormData.app_version, apiBaseUrl]);
 
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
     };
 
-    const handleHistoryProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedHistoryProject(event.target.value);
-    };
 
-    // Fetch versions for the main project selection
     useEffect(() => {
         const controller = new AbortController();
         const fetchVersions = async () => {
@@ -127,129 +145,6 @@ const IndexPage = () => {
         return () => controller.abort();
     }, [selectedProject, apiBaseUrl]);
 
-    // Fetch versions for the history project selection
-    useEffect(() => {
-
-
-        const controller = new AbortController();
-        const fetchFilterVersion = async () => {
-            if (!selectedHistoryProject) {
-                setFilterVersionOptions([]);
-                return;
-            }
-            try {
-                const response = await fetch(`${apiBaseUrl}/get_versions/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ project_name: selectedHistoryProject }),
-                    signal: controller.signal
-                });
-                const data = await response.json();
-                setFilterVersionOptions(data.versions);
-            } catch (error) {
-                console.error('Failed to fetch versions:', error);
-            }
-        };
-
-        fetchFilterVersion().then(r => r);
-        return () => controller.abort();
-    }, [selectedHistoryProject, apiBaseUrl]);
-    useEffect(() => {
-        interface HistoryItem {
-            deploy_id: string;  // 部署的唯一标识符
-            [key: string]: any;  // 允许访问其他任意属性
-        }
-        const fetchHistory = async () => {
-            try {
-                const response = await fetch(`${apiBaseUrl}/history/`);
-                const data = await response.json();
-                const newLockStatus: Record<string, number> = {};
-
-                const newCountdowns = {...countdowns};
-                const filteredData = data.history.history.filter((item: HistoryItem) =>
-                    (!selectedHistoryProject || item[3] === selectedHistoryProject) &&
-                    (!filterVersion || item[4] === filterVersion)
-                );
-
-                // 初始化锁定状态
-                filteredData.forEach((item: HistoryItem): any => {
-                    newLockStatus[item[2]] = item[9];
-                });
-
-                filteredData.forEach((item: any): any => {
-                    newLockStatus[item[2]] = item[9];
-
-                    // Calculate countdown end time, adding 30 days to the end time
-                    const endTime = item[6] ? new Date(item[6]) : null;
-                    if (endTime) {
-                        endTime.setDate(endTime.getDate() + 30);
-                        // Add 30 days to the end time
-                        const now = new Date(), timeLeft = endTime > now ? endTime.getTime() - now.getTime() : 0;
-                        // @ts-ignore
-                        newCountdowns[item[2]] = timeLeft;
-                    } else {
-                        // @ts-ignore
-                        newCountdowns[item[2]] = 0; // If endTime is null, set countdown to 0
-                    }
-                });
-                setHistoryData(filteredData);
-                setLockStatus(newLockStatus);
-                setCountdowns(newCountdowns);
-            } catch (error) {
-                console.error('Error fetching history:', error);
-            }
-        };
-
-        fetchHistory().then(r => r);
-    }, [selectedHistoryProject, filterVersion, apiBaseUrl, triggerHistoryUpdate]);
-
-    const triggerRecycleAPI = async (deployId: string) => {
-        try {
-            await fetch(`${apiBaseUrl}/build/`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'recycle', deploy_id: deployId}),
-            });
-            console.log(`Resource recycled for deployId: ${deployId}`);
-        } catch (error) {
-            console.error('Error recycling resource:', error);
-        }
-        };
-
-
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCountdowns(current => {
-                const updated = {...current};
-                Object.keys(updated).forEach(key => {
-                    // @ts-ignore
-                    if (updated[key] > 0) {
-                        // @ts-ignore
-                        updated[key] -= 1000;
-                    } else { // @ts-ignore
-                        if (updated[key] <= 0) {
-                                                // Before triggering, make sure all conditions are met
-                                                const historyItem = historyData.find(item => item[2] === key);
-                                                if (historyItem && historyItem[7] !== "FAILURE" && historyItem[7] !== "DELETE" && historyItem[10] !== "127.0.0.1" &&
-                                                    historyItem[6] !== null && historyItem[8] !== null && historyItem[9] !== null && historyItem[10] !== null) {
-                                                    // 暂时注释掉，避免误操作
-                                                    // triggerRecycleAPI(key);
-                                                    // @ts-ignore
-                                                    updated[key] = 0; // Optionally reset or handle as needed
-                                                }
-                                            }
-                    }
-                });
-                return updated;
-            });
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [historyData]);  // Ensure historyData is in the dependency array if it's not static
-
-
-
     useEffect(() => {
         const fetchEsxiState = async () => {
             try {
@@ -265,34 +160,69 @@ const IndexPage = () => {
                     cpuTotal: item[Object.keys(item)[0]]['cpu_total'],
                     cpuUsage: item[Object.keys(item)[0]]['cpu_usage']
                 })));
-                console.log(data);
+
             } catch (error) {
                 console.error('Error fetching esxi state:', error);
             }
         };
         fetchEsxiState().then(r => r);
     }, [apiBaseUrl]);
+const proBuild = async () => {
+    setIsLoading(true);
+    try {
+        const formData = new FormData();
+        formData.append('app_name', selectedProject);
+        formData.append('app_version', saveFormData.app_version);
+        formData.append('channel', saveFormData.channel);
+        formData.append('ware_version', saveFormData.ware_version);
+        formData.append('cloud_platform', saveFormData.cloud_platform);
 
+        const response = await fetch(`${apiBaseUrl}/probuild/`, {
+            method: 'POST',
+            body: formData,
+        });
+        await response.json();
+
+
+        setNotification({ show: true, message: '生产构建已开始' });
+        setTimeout(() => setNotification({ show: false, message: "" }), 3000);
+        setCurrentPage(1);
+    } catch (error) {
+        console.error('Error on form submit:', error);
+    } finally {
+        setIsLoading(false);
+    }
+}
 const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
     try {
-        const formData = new FormData(event.currentTarget); // Make sure 'event.currentTarget' is correctly used.
+        const formData = new FormData(event.currentTarget);
 
         formData.append('app_name', selectedProject);
         formData.append('app_version', saveFormData.app_version);
         formData.append('channel', saveFormData.channel);
+<<<<<<< HEAD
         formData.append('ware_version', wareVersion);
+=======
+        formData.append('ware_version', saveFormData.ware_version);
+        formData.append('cloud_platform', saveFormData.cloud_platform);
+        formData.append('cpu', saveFormData.cpu);
+        formData.append('memory', saveFormData.memory);
+        formData.append('disk', saveFormData.disk);
+        formData.append('deploy_host', saveFormData.deploy_host);
+
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
         const response = await fetch(`${apiBaseUrl}/build/`, {
             method: 'POST',
             body: formData,
         });
-        const data = await response.json();
-        console.log('Response:', data);
+        await response.json();
 
-        setTriggerHistoryUpdate(!triggerHistoryUpdate);
-        setNotification({ show: true, message: '构建已开始' });
+
+        setNotification({ show: true, message: '验证构建已开始' });
         setTimeout(() => setNotification({ show: false, message: "" }), 3000);
+        setCurrentPage(1);
     } catch (error) {
         console.error('Error on form submit:', error);
     } finally {
@@ -300,9 +230,16 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     }
 };
 
+    const [isPreviewButton, setIsPreviewButton] = useState(false);
+    const [cloudPlatform, setCloudPlatform] = useState('none');
+
     const handleWareVersionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setWareVersion(event.target.value);
+        setIsPreviewButton(event.target.value !== 'soft');
+        setCloudPlatform(event.target.value === 'cloud' ? 'cloud' : 'none');
     }
+
+
 
     const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedIP = event.target.value;
@@ -312,34 +249,7 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         if (host !== undefined) {
             setSelectedHost(host);
         } else {
-            // Optionally set to null or handle the undefined case differently
-            setSelectedHost(null);  // Adjust this based on how your state should be handled when no host is found
-        }
-    };
-
-
-    const toggleLock = async (deployId: any, currentLockStatus: any) => {
-        const newLockStatus = currentLockStatus === 1 ? 0 : 1; // 在1和0之间切换
-
-        setIsLoading(true);
-        try {
-            const response = await fetch(`${apiBaseUrl}/build/`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: newLockStatus === 1 ? 'lock' : 'unlock', deploy_id: deployId }),
-            });
-            const data = await response.json();
-            console.log('Lock response:', data);
-
-            // 使用 deployId 作为键来更新 lockStatus 状态
-            setLockStatus(prevStatus => ({
-                ...prevStatus,
-                [deployId]: newLockStatus
-            }));
-        } catch (error) {
-            console.error('Error toggling lock:', error);
-        } finally {
-            setIsLoading(false);
+            setSelectedHost(null);
         }
     };
 
@@ -351,19 +261,43 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
             app_name: selectedProject,
             app_version: (form?.querySelector('#source2') as HTMLSelectElement).value,
             ware_version: (form?.querySelector('#source6') as HTMLSelectElement).value,
-            channel: (form?.querySelector('#source7') as HTMLSelectElement).value
+            channel: (form?.querySelector('#source7') as HTMLSelectElement).value,
+            cloud_platform: (form?.querySelector('#source8') as HTMLSelectElement)?.value ?? '',
+            cpu: '',
+            memory: '',
+            disk: '',
+            deploy_host: ''
         };
-        console.log("newFormData", newFormData);
+
         setSaveFormData(newFormData);
         setCurrentPage(2);
     };
 
     const previousPage = () => {
         setCurrentPage(1);
+        setIsPreviewButton(false);
     };
 
-    const show_config = () => {
-        setCurrentPage(3);
+    const project_version = () => {
+        // 保存cpu, memory, disk, deploy_host
+        if (! isPreviewButton) {
+            const form = document.querySelector('.form-container form');
+            const newFormData = {
+                ...saveFormData,
+                cpu: (form?.querySelector('#source3') as HTMLSelectElement).value,
+                memory: (form?.querySelector('#source4') as HTMLSelectElement).value,
+                disk: (form?.querySelector('#source5') as HTMLSelectElement).value,
+                deploy_host: (form?.querySelector('#source6') as HTMLSelectElement).value,
+                cloud_platform: (form?.querySelector('#source8') as HTMLSelectElement)?.value ?? '',
+            }
+
+            setSaveFormData(newFormData);
+            setCurrentPage(3);
+        }else {
+            nextPage()
+            setCurrentPage(3)
+        }
+
     };
 
     // @ts-ignore
@@ -378,49 +312,67 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                 <form onSubmit={onSubmit}>
                     {currentPage === 1 && (
                         <>
-                            {/* 第一页内容 */}
-                            <div className="select-group">
-                                <label htmlFor="source1">项目</label>
-                                <select name="app_name" id="source1" className="form-select" onChange={handleProjectChange}
-                                        value={selectedProject}>
-                                    <option value="waf">waf</option>
-                                    <option value="omas">堡垒机</option>
-                                    <option value="lams">日审</option>
-                                    <option value="dsas">数审</option>
-                                    <option value="cosa">二合一</option>
-                                </select>
-                            </div>
-                            <div className="select-group">
-                                <label htmlFor="source2">版本</label>
-                                <select name="app_version" id="source2" className="form-select">
-                                    {appVersionOptions.map(version => (
-                                        <option key={version} value={version}>{version}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="select-group">
-                                <label htmlFor="source6">型号</label>
-                                <select name="ware_version" id="source6" className="form-select">
-                                    <option value="soft" defaultValue="soft">软件版</option>
-                                    <option value="hard">硬件版</option>
-                                    <option value="cloud">云版</option>
-                                    <option value="soft_cloud">全都要</option>
-                                </select>
-                            </div>
-                            <div className="select-group">
-                                <label htmlFor="source7">渠道</label>
-                                <select name="channel" id="source7" className="form-select">
-                                    <option value="uguardsec" defaultValue="uguardsec">天磊</option>
-                                    <option value="sunyainfo">上元信安</option>
-                                    <option value="ruisuyun">锐速云</option>
-                                    <option value="whiteboard">白板</option>
-                                </select>
-                            </div>
-                            <button type="button" onClick={nextPage}>下一页</button>
-                        </>
-                    )}
+                        {/* 第一页内容 */}
+                        <div className="select-group">
+                            <label htmlFor="source1">项目</label>
+                            <select name="app_name" id="source1" className="form-select" onChange={handleProjectChange}
+                                    value={selectedProject}>
+                                <option value="waf">waf</option>
+                                <option value="omas">堡垒机</option>
+                                <option value="lams">日审</option>
+                                <option value="dsas">数审</option>
+                                <option value="cosa">二合一</option>
+                            </select>
+                        </div>
+                        <div className="select-group">
+                            <label htmlFor="source2">版本</label>
+                            <select name="app_version" id="source2" className="form-select">
+                                {appVersionOptions.map(version => (
+                                    <option key={version} value={version}>{version}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="select-group">
+                            <label htmlFor="source6">型号</label>
+                            <select name="ware_version" id="source6" className="form-select"
+                                    onChange={handleWareVersionChange}>
+                                <option value="soft" defaultValue="soft">软件版</option>
+                                <option value="hard">硬件版</option>
+                                <option value="cloud">云版</option>
+                                <option value="soft_cloud">全都要</option>
+                            </select>
+                        </div>
 
-                    {currentPage === 2 && (
+                            {cloudPlatform === 'cloud' && (
+                                // 阿里云 腾讯云 华为云
+
+                                    <div className="select-group">
+                                        <label htmlFor="source8">平台</label>
+                                        <select name="cloud_platform" id="source8" className="form-select">
+                                            <option value="aliyun" defaultValue="aliyun">阿里云</option>
+                                            <option value="tencent" defaultValue="tencent">腾讯云</option>
+                                            <option value="huawei" defaultValue="huawei">华为云</option>
+                                        </select>
+                                    </div>
+                            )}
+                        <div className="select-group">
+                            <label htmlFor="source7">渠道</label>
+                            <select name="channel" id="source7" className="form-select">
+                                <option value="uguardsec" defaultValue="uguardsec">天磊</option>
+                                <option value="sunyainfo">上元信安</option>
+                                <option value="ruisuyun">锐速云</option>
+                                <option value="whiteboard">白板</option>
+                            </select>
+                        </div>
+                        {(isPreviewButton) && (
+                            <button type="button" onClick={project_version}>预览</button>
+                        ) || (
+                            <button type="button" onClick={nextPage}>下一页</button>
+                    )}
+                </>
+                )}
+
+                {currentPage === 2 && (
                         <>
                             {/* 第二页内容 */}
                             <div className="select-group">
@@ -453,10 +405,10 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             {(wareVersion === 'soft' || wareVersion === 'soft_cloud') && (
                                 <div>
                                     <div className="select-group">
-                                        <label htmlFor="source5">宿主机</label>
-                                        <select name="deploy_host" id="source5" className="form-select"
+                                        <label htmlFor="source6">宿主机</label>
+                                        <select name="deploy_host" id="source6" className="form-select"
                                                 onChange={handleSelectChange}>
-                                            <option value="none">请选择宿主机</option>
+
                                             {esxiState.map((host: any, index) => (
                                                 <option key={index} value={host.ip}>{host.ip}</option>
                                             ))}
@@ -489,9 +441,10 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                 </div>
                             )}
                             <button type="button" onClick={previousPage}>上一页</button>
-                            <button type="button" onClick={show_config}>预览</button>
+                            <button type="button" onClick={project_version}>预览</button>
                              </>
                             )}
+<<<<<<< HEAD
                             {currentPage === 3 && (
                                 <>
                                     {/* 第三页内容 */}
@@ -546,64 +499,55 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                         ))}
                     </select>
                 </div>
+=======
+                    {currentPage === 3 && (
+                        <>
+                            {/* 第三页内容 */}
+                            <div className='contain-content'>
+                                <h4>{saveFormData.app_name} {saveFormData.app_version}版本信息</h4>
+                                <table className="version-table">
+                                    <thead>
+                                    <tr>
+                                        <th>组件名称</th>
+                                        <th>版本号</th>
+                                        <th>提交记录</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {Object.keys(projectVersion.data).length > 0 && Object.keys(projectVersion.data).map((key) => (
+                                        <tr key={key}>
+                                            <td>{key.split('@')[0]}</td>
+                                            <td>{key.split('@')[1]}</td>
+                                            <td>
+                                                <select>
+                                                    {Object.keys(projectVersion.data[key]).map((commitId) => (
+                                                        <option key={commitId} value={commitId}>
+                                                            {projectVersion.data[key][commitId]}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
 
 
-                    <div className="card-container">
-                        {Array.isArray(historyData) && historyData.length > 0 ? (
+                            <div className="button-group">
+                                <button type="button" onClick={previousPage} className="cancel-button">取消</button>
+                                <button type="submit" disabled={isLoading} className="submit-button">
+                                    {isLoading ? 'Loading...' : '验证构建'}
+                                </button>
+                                <button type="button" onClick={proBuild} className="build-button">生产构建</button>
+                            </div>
 
-                            historyData.map((historyItem: any, index) => (
+                        </>
+                    )}
 
-                                <div className="card mb-3" key={index}>
-
-                                    {historyItem[7] === 'STOPPED' && <div className="new-badge-stop">停止</div>}
-                                    {historyItem[7] === 'RUNNING' && <div className="new-badge-running">运行</div>}
-                                    {historyItem[7] === 'DELETE' && <div className="new-badge-delete">删除</div>}
-                                    {historyItem[7] === 'SUCCESS' && <div className="new-badge-success">成功</div>}
-                                    {historyItem[7] === 'FAILURE' && <div className="new-badge-failure">失败</div>}
-                                    {historyItem[7] === 'VERIFIED' && <div className="new-badge-verify">已验证</div>}
-                                    {historyItem[7] === 'PASSED' && <div className="new-badge-verify">已验证删除</div>}
-                                    <div className="card-body">
-
-                                        <p className="card-text">项目: {historyItem[3]} </p>
-                                        <p className="card-text">版本: {historyItem[4]} </p>
-                                        <p className="card-text">时间: {historyItem[5]}～{historyItem[6]}</p>
-                                        <p className="card-text">次数: {historyItem[1]}</p>
-                                        <p className="card-text">宿主机IP: {historyItem[10]}</p>
-                                        <p className="card-text">IP: {historyItem[8]}</p>
-                                        {   historyItem[10] !== "127.0.0.1" &&
-                                            historyItem[7] !== "FAILURE" &&
-                                            historyItem[7] !== "DELETE" &&
-                                            historyItem[6] !== null &&
-                                            historyItem[8] !== null &&
-                                            historyItem[9] !== null
-                                            // historyItem[10] !== null &&
-                                            // (
-                                            //     <div className="card-text">
-                                            //         删除倒计时: {countdowns[historyItem[2]] ? formatTime(countdowns[historyItem[2]]) : 'Recycling triggered'}
-                                            //     </div>
-                                            // )
-                                        }
-
-
-                                        <Link href={`/task?deploy_id=${historyItem[2]?.split('-')[2]}`}
-                                              className="card-link">查看详情</Link>
-                                    </div>
-                                    {(historyItem[7] === 'SUCCESS' || historyItem[7] === 'VERIFIED') && !(historyItem[10] === "127.0.0.1" || historyItem[11] === null) && (
-                                        <button
-                                            className="lock-button"
-                                            onClick={() => toggleLock(historyItem[2], lockStatus[historyItem[2]] ?? 0)} // 如果未设置，默认为0
-                                        >
-                                            {lockStatus[historyItem[2]] === 1 ? <FiLock/> : <FiUnlock/>}
-                                        </button>
-
-                                    )}
-                                </div>
-
-                            ))
-                        ) : (
-                            <div>Loading...</div>
-                        )}
-                    </div>
+                </form>
+                <div className="version">version: replacever</div>
             </div>
 
         </div>

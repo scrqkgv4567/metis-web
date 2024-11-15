@@ -16,13 +16,14 @@ body {
 
 .page-container {
     display: flex;
-    flex-direction: row;
     justify-content: flex-start;
     align-items: flex-start;
     padding: 20px;
     gap: 20px;
     max-width: 1200px;
     margin: auto;
+    align-content: flex-start;
+    flex-direction: column;
 }
 
 .form-container {
@@ -31,7 +32,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 350px;
+    max-width: 1000px;
     margin: 20px;
     flex: 0 0 350px;
     position: sticky;
@@ -141,12 +142,18 @@ select, input {
     width: 100%; /* 宽度调整 */
 }
 
+contain-content {
+    contain: content;
+    padding-bottom: 200px;
+}
+
 button {
     background-color: #4285F4; /* Google蓝 */
     color: white;
     border: none;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.2s ease-in-out;
+
 }
 
 button:hover {
@@ -158,6 +165,47 @@ button:disabled {
     color: #666666;
     cursor: not-allowed;
 }
+
+.button-group {
+    display: flex;
+    gap: 10px; /* 在按钮之间添加间距 */
+    justify-content: flex-end; /* 将按钮组放在右侧 */
+}
+
+.button-group button {
+    padding-top: 10px;
+    flex: 1;
+}
+
+.cancel-button {
+    background-color: #dc3545; /* 红色 */
+    border: 1px solid #ccc;
+}
+
+.submit-button {
+    background-color: #007bff; /* 蓝色 */
+    border: 1px solid #ccc;
+}
+
+.build-button {
+    background-color: #28a745; /* 绿色 */
+    border: 1px solid #ccc;
+}
+
+/* 悬停状态 */
+.cancel-button:hover {
+    background-color: #c82333;
+
+}
+
+.submit-button:hover {
+    background-color: #0056b3;
+}
+
+.build-button:hover {
+    background-color: #218838;
+}
+
 
 @media (min-width: 768px) {
     .select-group {
@@ -178,8 +226,8 @@ button:disabled {
     .form-container, .history-container {
         width: 100%; /* 让每个容器都能充满屏幕宽度 */
         max-width: none; /* 移除最大宽度限制 */
-        padding: 20px; /* 略微减少填充 */
-        margin: 10px 0; /* 减少容器间的间距 */
+        padding: 5px; /* 略微减少填充 */
+        margin: 5px 0; /* 减少容器间的间距 */
         position: static; /* 确保表单容器在滚动时不固定 */
     }
     .card-container {
@@ -367,18 +415,33 @@ font-size: 0.75rem;
     top: 250px;
     right: 10px;
 }
+<<<<<<< HEAD
 
 .version-table {
     width: 100%;
     border-collapse: collapse;
+=======
+.version-table {
+    width: 100%;
+border-collapse: collapse;
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
 }
 
 .version-table th, .version-table td {
     text-align: left;
+<<<<<<< HEAD
     padding: 12px;
     border-bottom: 1px solid #ddd;
+=======
+padding: 12px;
+border-bottom: 1px solid #ddd;
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
 }
 
 .version-table th {
     background-color: #eee;
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
