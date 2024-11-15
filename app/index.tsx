@@ -583,11 +583,11 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                                     <tr>
                                         <th>组件名称</th>
                                         <th>版本号</th>
-                                        <th>提交ID</th>
+                                        <th>提交记录</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {Object.keys(projectVersion.data).map((key) => (
+                                    {Object.keys(projectVersion.data).length > 0 && Object.keys(projectVersion.data).map((key) => (
                                         <tr key={key}>
                                             <td>{key.split('@')[0]}</td>
                                             <td>{key.split('@')[1]}</td>
