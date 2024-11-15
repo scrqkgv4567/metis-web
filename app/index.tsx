@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FiLock, FiUnlock } from 'react-icons/fi';
+import { FiLock, FiUnlock } from "react-icons/fi";
 
 import Link from "next/link";
 
@@ -17,6 +17,10 @@ interface selectedHost {
     memUsage: number;
     cpuTotal: number;
     cpuUsage: number;
+}
+
+interface projects {
+
 }
 
 
@@ -69,7 +73,28 @@ const IndexPage = () => {
         ware_version: ''
     });
 
+    interface ProjectVersion {
+        data: {
+            [key: string]: string;
+        };
+    }
 
+    const [projectVersion, setProjectVersion] = useState<ProjectVersion>({data: {}});
+
+    useEffect(() => {
+        const fetchData = async () => {
+            // 假设这是获取数据的 API URL
+            const response = await fetch(`${apiBaseUrl}/project_version`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ app_name: saveFormData.app_name, app_version: saveFormData.app_version })
+            });
+            const data = await response.json();
+            setProjectVersion(data);
+        };
+
+        fetchData();
+    }, [saveFormData.app_name, saveFormData.app_version, apiBaseUrl]);
 
     const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedProject(event.target.value);
@@ -258,10 +283,6 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         formData.append('app_version', saveFormData.app_version);
         formData.append('channel', saveFormData.channel);
         formData.append('ware_version', wareVersion);
-        console.log('App Name:', formData.get('app_name'));
-        console.log('App Version:', formData.get('app_version'));
-        console.log('Channel:', formData.get('channel'));
-        console.log('Ware Version:', formData.get('ware_version'));
         const response = await fetch(`${apiBaseUrl}/build/`, {
             method: 'POST',
             body: formData,
@@ -345,6 +366,8 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setCurrentPage(3);
     };
 
+    // @ts-ignore
+    // @ts-ignore
     // @ts-ignore
     return (
         <div className="page-container">
@@ -472,37 +495,32 @@ const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                             {currentPage === 3 && (
                                 <>
                                     {/* 第三页内容 */}
-                                    <div className="select-group">
-                                        <label htmlFor="source8">配置</label>
-                                        <select name="config" id="source8" className="form-select">
-                                            <option value="1" defaultValue="1">配置1</option>
-                                            <option value="2">配置2</option>
-                                            <option value="3">配置3</option>
-                                        </select>
-                                    </div>
-                                    <div className="select-group">
-                                        <label htmlFor="source9">配置</label>
-                                        <select name="config" id="source9" className="form-select">
-                                            <option value="1" defaultValue="1">配置1</option>
-                                            <option value="2">配置2</option>
-                                            <option value="3">配置3</option>
-                                        </select>
-                                    </div>
-                                    <div className="select-group">
-                                        <label htmlFor="source10">配置</label>
-                                        <select name="config" id="source10" className="form-select">
-                                            <option value="1" defaultValue="1">配置1</option>
-                                            <option value="2">配置2</option>
-                                            <option value="3">配置3</option>
-                                        </select>
+                                    <div className='contain-content'>
+                                       
+                                        <table className="version-table">
+                                            <thead>
+                                            <tr>
+                                                <th>组件名称</th>
+                                                <th>版本号</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {Object.keys(projectVersion['data']).map((key) => (
+                                                <tr key={key}>
+                                                    <td>{key}</td>
+                                                    <td>{projectVersion['data'][key]}</td>
+                                                </tr>
+                                            ))}
+                                            </tbody>
+                                        </table>
                                     </div>
                                     <button type="button" onClick={previousPage}>取消</button>
                                     <button type="submit" disabled={isLoading}>
                                         {isLoading ? 'Loading...' : '开始构建'}
                                     </button>
 
-                        </>
-                    )}
+                                </>
+                            )}
                 </form>
                 <div className="version">version: 0.1.3</div>
             </div>
