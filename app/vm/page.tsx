@@ -93,14 +93,14 @@ const VmsDashboard: React.FC = () => {
                                     disabled={vm.vm_state === "poweredOn"}
                                     className="me-2"
                                 >
-                                    开机
+                                    {vm.vm_state === "poweredOn" ? "已开机" : "开机"}
                                 </Button>
                                 <Button
                                     variant="danger"
                                     onClick={() => handleVmAction("poweroff", vm.vm_uuid)}
                                     disabled={vm.vm_state === "poweredOff"}
                                 >
-                                    关机
+                                    {vm.vm_state === "poweredOff" ? "已关机" : "关机"}
                                 </Button>
                             </td>
                         </tr>
