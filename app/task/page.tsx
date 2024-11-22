@@ -1,6 +1,8 @@
 'use client'
 import React, { FormEvent, useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { CircularProgress, Container, Typography, Button, Box, TextField, Paper } from '@mui/material';
+import { styled } from '@mui/system';
 
 interface TaskState {
     deploy_id: string;
@@ -9,8 +11,15 @@ interface TaskState {
     action: string;
 }
 
+const StyledPaper = styled(Paper)(({ theme }) => ({
+    padding: theme.spacing(4),
+    maxWidth: '500px',
+    margin: '0 auto',
+}));
+
 const TaskPageContent  = () => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const router = useRouter();
 
     const searchParams = useSearchParams();
     const deploy_id = searchParams.get('deploy_id');
@@ -18,6 +27,7 @@ const TaskPageContent  = () => {
     const [taskState, setTaskState] = useState<TaskState>({} as TaskState);
     const [action, setAction] = useState('');
     const [triggerOnsubmit, setTriggerOnsubmit] = useState(false);
+
     useEffect(() => {
         const doFetchTask = async () => {
             setIsLoading(true);
@@ -37,6 +47,7 @@ const TaskPageContent  = () => {
 
         doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
     }, [deploy_id, apiBaseUrl, triggerOnsubmit]);
+
     function translateTaskStep({step}: { step: any }) {
         switch (step) {
             case 'preparation_task':
@@ -55,6 +66,7 @@ const TaskPageContent  = () => {
                 return step; // Return original step if no translation found
         }
     }
+
     function translateTaskState({state}: { state: any }) {
         switch (state) {
             case 'STOPPED':
@@ -79,6 +91,7 @@ const TaskPageContent  = () => {
                 return state; // Return original state if no translation found
         }
     }
+
     const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setIsLoading(true);
@@ -99,55 +112,94 @@ const TaskPageContent  = () => {
         }
     };
 
+    const onHistoryClick = () => {
+        router.push('/history');
+    };
+
     return (
-        <div className="container mt-5">
-            <form onSubmit={onSubmit} className="bg-white p-5 rounded shadow-md mx-auto" style={{ maxWidth: '500px' }}>
-                <div className="mb-3">
-                    <label className="form-label font-weight-bold">构建 ID:</label>
-                    <div className="form-control-plaintext">{taskState.deploy_id}</div>
-                </div>
-                <div className="mb-3">
-                    <label className="form-label font-weight-bold">当前任务:</label>
-                    <div className="form-control-plaintext">{taskState.step}</div>
-                </div>
-                <div className="mb-3">
-                    <label className="form-label font-weight-bold">任务状态:</label>
-                    <div className="form-control-plaintext">
-                        {taskState.state}
-                    </div>
-                </div>
-                <div className="btn-group d-flex" role="group">
-                    {taskState.state === '正在运行' && (
-                        <button type="submit" disabled={isLoading}
+        <Container maxWidth="sm" sx={{ mt: 5 }}>
+            <StyledPaper elevation={3}>
+                <form onSubmit={onSubmit}>
+                    <Typography variant="h6" gutterBottom>构建 ID:</Typography>
+                    <TextField
+                        variant="outlined"
+                        fullWidth
+                        InputProps={{ readOnly: true }}
+                        value={taskState.deploy_id || ''}
+                        sx={{ mb: 3 }}
+                    />
+
+                    <Typography variant="h6" gutterBottom>当前任务:</Typography>
+                    <TextField
+                        variant="outlined"
+                        fullWidth
+                        InputProps={{ readOnly: true }}
+                        value={taskState.step || ''}
+                        sx={{ mb: 3 }}
+                    />
+
+                    <Typography variant="h6" gutterBottom>任务状态:</Typography>
+                    <TextField
+                        variant="outlined"
+                        fullWidth
+                        InputProps={{ readOnly: true }}
+                        value={taskState.state || ''}
+                        sx={{ mb: 3 }}
+                    />
+
+                    <Box display="flex" justifyContent="space-between" mt={3}>
+                        {taskState.state === '正在运行' && (
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="error"
                                 onClick={() => setAction('revoke')}
-                                className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
-                            {isLoading ? 'Loading...' : '停止'}
-                        </button>
-                    )}
-                    {taskState.step === '安装系统' && !(taskState.state === "锁定") && (taskState.state === '已完成' || taskState.state === '生产通过' || taskState.state === '未锁定' )  && (
-                        <button type="submit" disabled={isLoading}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <CircularProgress size={24} /> : '停止'}
+                            </Button>
+                        )}
+                        {taskState.step === '安装系统' && !(taskState.state === "锁定") && (taskState.state === '已完成' || taskState.state === '生产通过' || taskState.state === '未锁定' )  && (
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="error"
                                 onClick={() => setAction('delete')}
-                                className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
-                            {isLoading ? 'Loading...' : '删除'}
-                        </button>
-                    )}
-                    {taskState.step === '安装系统' &&(taskState.state === '已完成' || taskState.state === '锁定' || taskState.state === '未锁定' )  && (
-                        <button type="submit" disabled={isLoading}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <CircularProgress size={24} /> : '删除'}
+                            </Button>
+                        )}
+                        {taskState.step === '安装系统' &&(taskState.state === '已完成' || taskState.state === '锁定' || taskState.state === '未锁定' )  && (
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="primary"
                                 onClick={() => setAction('verify')}
-                                className={`btn ${isLoading ? 'btn-secondary' : 'btn-danger'} flex-grow-1`}>
-                            {isLoading ? 'Loading...' : '生产通过'}
-                        </button>
-                    )}
-                </div>
-            </form>
-        </div>
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <CircularProgress size={24} /> : '生产通过'}
+                            </Button>
+                        )}
+                    </Box>
+
+                    <Box display="flex" justifyContent="center" mt={3}>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={onHistoryClick}
+                        >
+                            返回历史记录
+                        </Button>
+                    </Box>
+                </form>
+            </StyledPaper>
+        </Container>
     );
-
-
 }
 
 const TaskPage = () => (
-    <Suspense fallback={<div>Loading task details...</div>}>
+    <Suspense fallback={<Box display="flex" justifyContent="center" mt={5}><CircularProgress /></Box>}>
         <TaskPageContent />
     </Suspense>
 );
