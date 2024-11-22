@@ -1,8 +1,9 @@
-/* Tailwind CSS 工具类引入 */
+/* Tailwind CSS Tools Import */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* General Body Styling */
 body {
     font-family: 'Roboto', sans-serif;
     display: flex;
@@ -16,14 +17,13 @@ body {
 
 .page-container {
     display: flex;
+    flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
     padding: 20px;
     gap: 20px;
     max-width: 1200px;
     margin: auto;
-    align-content: flex-start;
-    flex-direction: column;
 }
 
 .form-container {
@@ -32,20 +32,11 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
+    min-height: 700px;
     max-width: 1000px;
     margin: 20px;
-    flex: 0 0 350px;
     position: sticky;
     top: 20px;
-}
-
-.history-container, .card-container {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
 }
 
 .card-container {
@@ -62,52 +53,12 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    min-height: 100%;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-    .page-container {
-        flex-direction: column;
-    }
-    .form-container, .history-container {
-        width: 100%;
-        max-width: none;
-        padding: 20px;
-        margin: 10px 0;
-        position: static;
-    }
-    .card-container {
-        grid-template-columns: 1fr; /* 在小屏幕上堆叠 */
-    }
-}
-
-@media (min-width: 768px) {
-    .card-container {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    }
-}
-
-@media (min-width: 1024px) {
-    .card-container {
-        grid-template-columns: repeat(3, 1fr); /* 在大屏幕上展示三列 */
-    }
-}
-
-@media (min-width: 1440px) {
-    .card-container {
-        grid-template-columns: repeat(4, 1fr); /* 在非常大的屏幕上展示四列 */
-    }
-}
-
-
-
-.card:hover {
-    box-shadow: 0 8px 16px rgba(0,0,0,0.2); /* Slightly larger shadow on hover */
+    height: 100%;
 }
 
 .card-body {
     padding: 20px;
+    flex: 1;
 }
 
 .card-title {
@@ -117,47 +68,25 @@ body {
 
 .card-text, .card-subtitle {
     color: #666;
-
 }
 
 .card-link {
-    color: #4285F4; /* Google blue for links */
-}
-
-.select-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-input, select, button {
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 16px;
-}
-
-select, input {
-    border: 1px solid #ccc;
-    width: 100%; /* 宽度调整 */
-}
-
-contain-content {
-    contain: content;
-    padding-bottom: 200px;
+    color: #4285F4;
 }
 
 button {
-    background-color: #4285F4; /* Google蓝 */
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #4285F4;
     color: white;
     border: none;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s ease-in-out;
-
 }
 
 button:hover {
-    background-color: #357ae8; /* 鼠标悬停时的颜色 */
+    background-color: #357ae8;
 }
 
 button:disabled {
@@ -166,153 +95,7 @@ button:disabled {
     cursor: not-allowed;
 }
 
-.button-group {
-    display: flex;
-    gap: 10px; /* 在按钮之间添加间距 */
-    justify-content: flex-end; /* 将按钮组放在右侧 */
-}
-
-.button-group button {
-    padding-top: 10px;
-    flex: 1;
-}
-
-.cancel-button {
-    background-color: #dc3545; /* 红色 */
-    border: 1px solid #ccc;
-}
-
-.submit-button {
-    background-color: #007bff; /* 蓝色 */
-    border: 1px solid #ccc;
-}
-
-.build-button {
-    background-color: #28a745; /* 绿色 */
-    border: 1px solid #ccc;
-}
-
-/* 悬停状态 */
-.cancel-button:hover {
-    background-color: #c82333;
-
-}
-
-.submit-button:hover {
-    background-color: #0056b3;
-}
-
-.build-button:hover {
-    background-color: #218838;
-}
-
-
-@media (min-width: 768px) {
-    .select-group {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-    }
-    select, input {
-        flex-grow: 1;
-        margin-left: 10px;
-    }
-}
-
-@media (max-width: 768px) {
-    .page-container {
-        flex-direction: column; /* 在小屏幕上堆叠容器 */
-    }
-    .form-container, .history-container {
-        width: 100%; /* 让每个容器都能充满屏幕宽度 */
-        max-width: none; /* 移除最大宽度限制 */
-        padding: 5px; /* 略微减少填充 */
-        margin: 5px 0; /* 减少容器间的间距 */
-        position: static; /* 确保表单容器在滚动时不固定 */
-    }
-    .card-container {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* 调整网格布局以适应更小的卡片 */
-    }
-}
-
-@media (max-width: 480px) {
-    .card-container {
-        grid-template-columns: 1fr; /* 在非常小的屏幕上垂直堆叠卡片 */
-    }
-    .card-body {
-        padding: 15px; /* 在非常小的屏幕上进一步调整填充 */
-    }
-    select, input, button {
-        width: 100%; /* 确保表单元素适应容器宽度 */
-    }
-}
-
-
-.card-container {
-    display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Adapts the number of columns based on the container width */
-    align-items: start; /* Aligns items at the start of the grid area */
-}
-
-.card {
-    display: compact;
-    flex-direction: column; /* Makes the card flexible in the direction of column */
-    height: 100%; /* Ensures all cards stretch to fill the grid row height */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.card-body {
-    flex: 1; /* Allows the card body to expand and fill available space */
-    padding: 20px;
-}
-
-
-@media (min-width: 768px) {
-    .card-container {
-        grid-template-columns: repeat(2, 1fr); /* Two columns for medium screens */
-    }
-}
-
-@media (min-width: 1024px) {
-    .card-container {
-        grid-template-columns: repeat(3, 1fr); /* Three columns for large screens */
-    }
-}
-
-@media (min-width: 1440px) {
-    .card-container {
-        grid-template-columns: repeat(4, 1fr); /* Four columns for very large screens */
-    }
-}
-
-.fade-enter {
-    opacity: 0;
-    transform: scale(0.9);
-}
-.fade-enter-active {
-    opacity: 1;
-    transform: scale(1);
-    transition: opacity 500ms ease-in, transform 500ms ease-in;
-}
-.fade-exit {
-    opacity: 1;
-}
-.fade-exit-active {
-    opacity: 0;
-    transition: opacity 500ms ease-in;
-}
-.hardware-configs {
-    display: flex;
-    justify-content: space-between;
-}
-.hardware-configs > div {
-    flex: 1;
-}
-
+/* Notification Styling */
 .notification {
     position: fixed;
     top: 20px;
@@ -329,86 +112,134 @@ button:disabled {
 
 .notification.show {
     opacity: 1;
-    transition: opacity 0.5s ease-in-out;
 }
 
-.notification.hide {
+/* Transition Effects */
+.fade-enter, .fade-exit-active {
     opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+    transform: scale(0.9);
+    transition: opacity 500ms ease-in, transform 500ms ease-in;
 }
 
-.new-badge-running {
+.fade-enter-active, .fade-exit {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 500ms ease-in, transform 500ms ease-in;
+}
+
+/* Button Groups */
+.button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-container {
+        flex-direction: column;
+    }
+    .form-container, .card-container {
+        width: 100%;
+        max-width: none;
+        padding: 20px;
+        margin: 10px 0;
+        position: static;
+    }
+    .card-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 768px) {
+    .card-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .card-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1440px) {
+    .card-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Card Hover Effect */
+.card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Custom Badges for Different Statuses */
+.new-badge {
     position: absolute;
     top: 0;
     right: 0;
+    padding: 5px 10px;
+    border-radius: 0 0 0 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.new-badge.running {
     background-color: blue;
     color: white;
-    padding: 5px 10px;
-    border-radius: 0 0 0 10px;
-font-size: 0.75rem;
-    font-weight: bold;
 }
 
-.new-badge-stop {
-    position: absolute;
-    top: 0;
-    right: 0;
+.new-badge.stop {
     background-color: red;
     color: white;
-    padding: 5px 10px;
-    border-radius: 0 0 0 10px;
-    font-size: 0.75rem;
-    font-weight: bold;
 }
 
-.new-badge-delete {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background-color: #f8f9fa;
-    color: #333;
-    padding: 5px 10px;
-    border-radius: 0 0 0 10px;
-    font-size: 0.75rem;
-    font-weight: bold;
-}
-
-.new-badge-success {
-    position: absolute;
-    top: 0;
-    right: 0;
+.new-badge.success {
     background-color: #eebb22;
     color: white;
-    padding: 5px 10px;
-    border-radius: 0 0 0 10px;
-    font-size: 0.75rem;
-    font-weight: bold;
 }
 
-.new-badge-failure {
-    position: absolute;
-    top: 0;
-    right: 0;
+.new-badge.failure {
     background-color: #f11c32;
     color: #f6f4f4;
-    padding: 5px 10px;
-    border-radius: 0 0 0 10px;
-    font-size: 0.75rem;
-    font-weight: bold;
 }
 
-.new-badge-verify {
-    position: absolute;
-    top: 0;
-    right: 0;
+.new-badge.verify {
     background-color: green;
     color: white;
-    padding: 5px 10px;
-    border-radius: 0 0 0 10px;
-    font-size: 0.75rem;
-    font-weight: bold;
 }
 
+/* Inputs and Selects Styling */
+input, select {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+/* Cancel and Build Button Styling */
+.cancel-button {
+    background-color: #dc3545;
+    border: none;
+}
+
+.cancel-button:hover {
+    background-color: #c82333;
+}
+
+.build-button {
+    background-color: #28a745;
+    border: none;
+}
+
+.build-button:hover {
+    background-color: #218838;
+}
+
+/* Lock Button Styling */
 .lock-button {
     background-color: #28a745;
     color: white;
@@ -416,4 +247,11 @@ font-size: 0.75rem;
     right: 10px;
 }
 
+.hardware-configs {
+    display: flex;
+    justify-content: space-between;
+}
 
+.hardware-configs > div {
+    flex: 1;
+}
