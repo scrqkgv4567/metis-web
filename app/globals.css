@@ -415,18 +415,33 @@ font-size: 0.75rem;
     top: 250px;
     right: 10px;
 }
+<<<<<<< HEAD
+
+.version-table {
+    width: 100%;
+    border-collapse: collapse;
+=======
 .version-table {
     width: 100%;
 border-collapse: collapse;
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
 }
 
 .version-table th, .version-table td {
     text-align: left;
+<<<<<<< HEAD
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+=======
 padding: 12px;
 border-bottom: 1px solid #ddd;
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
 }
 
 .version-table th {
     background-color: #eee;
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> c66c6d0e7297e16c8f5b8f2539624025815a36ae
