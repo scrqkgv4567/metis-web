@@ -200,11 +200,11 @@ const HistoryPageContent  = () => {
                                 <Card.Body>
                                     <Badge bg={historyItem['state'] === 'STOPPED' ? 'secondary' :
                                         historyItem['state'] === 'RUNNING' ? 'primary' :
-                                            historyItem['state'] === 'DELETE' ? 'danger' :
-                                                historyItem['state'] === 'SUCCESS' ? 'success' :
-                                                    historyItem['state'] === 'FAILURE' ? 'danger' :
-                                                        historyItem['state'] === 'VERIFIED' ? 'info' : 'warning'}
-                                           className="mb-3">
+                                        historyItem['state'] === 'DELETE' ? 'danger' :
+                                        historyItem['state'] === 'SUCCESS' ? 'success' :
+                                        historyItem['state'] === 'FAILURE' ? 'danger' :
+                                        historyItem['state'] === 'VERIFIED' ? 'info' : 'warning'}
+                                        className="mb-3">
                                         {historyItem['state']}
                                     </Badge>
                                     <Card.Text><strong>项目:</strong> {historyItem['app_name']}</Card.Text>
