@@ -1,0 +1,92 @@
+/* history.css */
+
+/* Fixed selection bar styles */
+.sticky-select-bar {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1000; /* Ensure the selection bar is on top */
+    padding: 1rem 0; /* Adjust padding as needed */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: add shadow for better visual */
+    height: 80px; /* Define a fixed height */
+}
+
+/* Ensure the main content is not hidden behind the sticky select bar */
+.history-content {
+    position: relative;
+    z-index: 1;
+    padding-top: 80px; /* Same as the height of .sticky-select-bar */
+}
+
+/* Loading spinner container styles */
+.loading-spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 400px; /* Adjust based on content height */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.loading-spinner-container.show {
+    opacity: 1;
+}
+
+/* Ensure cards do not overlap the selection bar */
+.history-content .card {
+    margin-top: 1rem;
+}
+
+/* Adjust animation button z-index to avoid overlapping the selection bar */
+.animate-button {
+    z-index: 500;
+    position: relative; /* Ensure z-index is effective */
+}
+
+/* Responsive adjustments for loading spinner */
+@media (max-width: 768px) {
+    .loading-spinner-container {
+        min-height: 300px; /* Adjust for tablets */
+    }
+}
+
+@media (max-width: 576px) {
+    .loading-spinner-container {
+        min-height: 200px; /* Adjust for mobile devices */
+    }
+}
+
+/* history.css */
+
+/* 占位样式 */
+.placeholder {
+    height: 400px; /* 设置占位高度，与加载完成后的内容区域保持一致 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa; /* 或设置加载前背景色 */
+    border: 1px dashed #dee2e6; /* 可选：加上边框提示这是占位 */
+    margin: 0.5rem 0; /* 保持与实际内容间距一致 */
+}
+
+.loading-spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+/* 平滑过渡效果 */
+.placeholder {
+    animation: fade-in 0.5s ease-in-out;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

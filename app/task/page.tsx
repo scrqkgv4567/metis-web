@@ -113,7 +113,7 @@ const TaskPageContent  = () => {
     };
 
     const onHistoryClick = () => {
-        router.push('/history');
+        router.push('/');
     };
 
     return (
@@ -189,7 +189,7 @@ const TaskPageContent  = () => {
                             color="secondary"
                             onClick={onHistoryClick}
                         >
-                            返回历史记录
+                            返回首页
                         </Button>
                     </Box>
                 </form>
