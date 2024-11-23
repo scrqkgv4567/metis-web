@@ -3,13 +3,12 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { Spinner } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './index.css'; // 添加自定义样式文件
+import './index.css';
 
+const BuildPage = lazy(() => import('./build/page'));
 const HistoryPage = lazy(() => import('./history/page'));
-const BuildPage = lazy(() => import('./build/page')); // 假设构建页面在 `build/page.tsx`
-
 const HomePage: React.FC = () => {
-    const [activePage, setActivePage] = useState<'history' | 'build'>('history');
+    const [activePage, setActivePage] = useState<'history' | 'build'>('build');
 
     const renderContent = () => {
         switch (activePage) {
@@ -47,8 +46,8 @@ const HomePage: React.FC = () => {
                 </nav>
             </div>
 
-            {/* 主要内容区 */}
-                        <div className="content">
+
+            <div className="content">
                 <Suspense fallback={
                     <div className="spinner-container">
                         <Spinner animation="border" variant="primary" />

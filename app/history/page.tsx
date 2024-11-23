@@ -185,7 +185,7 @@ const HistoryPageContent: React.FC = () => {
             <ToastContainer />
             <h3 className="mb-4">历史构建</h3>
             {/* 固定选择栏 */}
-            <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000, paddingBottom: '1rem' }}>
+            <div style={{ position: 'sticky', top: 0, backgroundColor: '#f1f1f0', zIndex: 1000, paddingBottom: '0.5rem' }}>
                 <Row className="mb-4">
                     <Col md={6}>
                         <Form.Select value={selectedHistoryProject} onChange={handleHistoryProjectChange}>
