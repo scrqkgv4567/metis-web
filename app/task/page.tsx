@@ -138,7 +138,7 @@ const TaskPageContent  = () => {
                         sx={{ mb: 3 }}
                     />
 
-                    <Typography variant="h6" gutterBottom>任务状态:</Typography>
+                    <Typography variant="h6" gutterBottom>构建状态:</Typography>
                     <TextField
                         variant="outlined"
                         fullWidth

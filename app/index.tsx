@@ -345,6 +345,7 @@ const IndexPage = () => {
                                                         setSaveFormData({ ...saveFormData, deploy_host: e.target.value });
                                                     }}
                                                 >
+                                                    <option value="">请选择</option>
                                                     {esxiState.map((host: any, index) => (
                                                         <option key={index} value={host.ip}>{host.ip}</option>
                                                     ))}
@@ -407,7 +408,7 @@ const IndexPage = () => {
                                             </table>
                                         </div>
                                         <div className="d-flex justify-content-between">
-                                            <button type="button" onClick={previousPage} className="btn btn-secondary">取消</button>
+                                            <button type="button" onClick={previousPage} className="btn btn-secondary">上一页</button>
                                             <button type="submit" disabled={isLoading} className="btn btn-success">
                                                 {isLoading ? 'Loading...' : '验证构建'}
                                             </button>
