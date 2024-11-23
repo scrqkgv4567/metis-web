@@ -217,8 +217,12 @@ const IndexPage = () => {
                                                 id="source2"
                                                 className="form-select"
                                                 value={saveFormData.app_version}
-                                                onChange={(e) => setSaveFormData({ ...saveFormData, app_version: e.target.value })}
+                                                onChange={(e) => setSaveFormData({
+                                                    ...saveFormData,
+                                                    app_version: e.target.value
+                                                })}
                                             >
+                                                <option value="">请选择</option>
                                                 {appVersionOptions.map(version => (
                                                     <option key={version} value={version}>{version}</option>
                                                 ))}
