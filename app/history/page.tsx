@@ -4,6 +4,8 @@ import Link from "next/link";
 import {FiLock, FiUnlock} from "react-icons/fi";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Card, Button, Row, Col, Form, Badge, Spinner } from 'react-bootstrap';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function formatTime(ms: any) {
     if (ms <= 0) {
@@ -143,30 +145,49 @@ const HistoryPageContent  = () => {
         return () => clearInterval(timer);
     }, [historyData]);
 
+    const [loadingState, setLoadingState] = useState<{ [key: string]: boolean }>({});
+
     const toggleLock = async (deployId: any, currentLockStatus: any) => {
         const newLockStatus = currentLockStatus === 1 ? 0 : 1;
-        setIsLoading(true);
+        setLoadingState(prev => ({
+            ...prev,
+            [deployId]: true
+        }));
         try {
             const response = await fetch(`${apiBaseUrl}/build/`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: newLockStatus === 1 ? 'lock' : 'unlock', deploy_id: deployId }),
             });
-            const data = await response.json();
-            console.log('Lock response:', data);
-            setLockStatus(prevStatus => ({
-                ...prevStatus,
-                [deployId]: newLockStatus
-            }));
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Lock response:', data);
+                setLockStatus(prevStatus => ({
+                    ...prevStatus,
+                    [deployId]: newLockStatus
+                }));
+                // 成功时弹出成功提示
+                toast.success(`资源${newLockStatus === 1 ? '已锁定' : '已解锁'}成功`);
+            } else {
+                // 失败时弹出失败提示
+                toast.error(`资源${newLockStatus === 1 ? '锁定' : '解锁'}失败`);
+            }
         } catch (error) {
             console.error('Error toggling lock:', error);
+            // 失败时弹出失败提示
+            toast.error(`资源${newLockStatus === 1 ? '锁定' : '解锁'}失败`);
         } finally {
-            setIsLoading(false);
+            setLoadingState(prev => ({
+                ...prev,
+                [deployId]: false
+            }));
         }
     };
 
     return (
         <Container className="mt-4">
+            <ToastContainer />
             <h3 className="mb-4">历史构建</h3>
             <Row className="mb-4">
                 <Col md={6}>
@@ -200,11 +221,11 @@ const HistoryPageContent  = () => {
                                 <Card.Body>
                                     <Badge bg={historyItem['state'] === 'STOPPED' ? 'secondary' :
                                         historyItem['state'] === 'RUNNING' ? 'primary' :
-                                        historyItem['state'] === 'DELETE' ? 'danger' :
-                                        historyItem['state'] === 'SUCCESS' ? 'success' :
-                                        historyItem['state'] === 'FAILURE' ? 'danger' :
-                                        historyItem['state'] === 'VERIFIED' ? 'info' : 'warning'}
-                                        className="mb-3">
+                                            historyItem['state'] === 'DELETE' ? 'danger' :
+                                                historyItem['state'] === 'SUCCESS' ? 'success' :
+                                                    historyItem['state'] === 'FAILURE' ? 'danger' :
+                                                        historyItem['state'] === 'VERIFIED' ? 'info' : 'warning'}
+                                           className="mb-3">
                                         {historyItem['state']}
                                     </Badge>
                                     <Card.Text><strong>项目:</strong> {historyItem['app_name']}</Card.Text>
@@ -221,9 +242,15 @@ const HistoryPageContent  = () => {
                                             variant="outline-secondary"
                                             onClick={() => toggleLock(historyItem['iso_name'], lockStatus[historyItem['iso_name']] ?? 0)}
                                             className="float-end"
+                                            disabled={loadingState[historyItem['iso_name']]}
                                         >
-                                            {lockStatus[historyItem['iso_name']] === 1 ? <FiLock /> : <FiUnlock />}
+                                            {loadingState[historyItem['iso_name']] ? (
+                                                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                                            ) : (
+                                                lockStatus[historyItem['iso_name']] === 1 ? <FiLock /> : <FiUnlock />
+                                            )}
                                         </Button>
+
                                     )}
                                 </Card.Body>
                             </Card>
@@ -235,6 +262,7 @@ const HistoryPageContent  = () => {
             </Row>
         </Container>
     );
+
 }
 
 const HistoryPage = () => (
