@@ -1,4 +1,3 @@
-// HomePage.tsx
 'use client';
 import React, { useState, Suspense, lazy } from 'react';
 import { Spinner } from 'react-bootstrap';
