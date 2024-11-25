@@ -1,9 +1,9 @@
 'use client';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Spinner, Container, Table } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './vm.css';
+import styles from './vm.module.css';
 
 interface Vm {
     id: number;
@@ -21,7 +21,12 @@ const VmsDashboard: React.FC = () => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     const [notification, setNotification] = useState({ show: false, message: '' });
 
+    const didFetch = useRef(false);
+
     useEffect(() => {
+        if (didFetch.current) return;
+
+        didFetch.current = true;
         const fetchVmsState = async () => {
             try {
                 const response = await axios.get(`${apiBaseUrl}/show_vms_state`);
@@ -71,7 +76,7 @@ const VmsDashboard: React.FC = () => {
         <Container>
             <h1 className="text-center my-4">测试用虚拟机资源列表</h1>
             {notification.show && (
-                <div className="notification">
+                <div className={styles.notification}>
                     {notification.message}
                 </div>
             )}
@@ -102,7 +107,7 @@ const VmsDashboard: React.FC = () => {
                             <td>{vm.vm_name}</td>
                             <td>{vm.vm_host}</td>
                             <td>
-                                <label>
+                                <label className={styles.vmToggle}>
                                     <input
                                         type="checkbox"
                                         checked={vm.vm_state === "poweredOn"}

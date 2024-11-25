@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import React, { useEffect, useState, useMemo, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { FiLock, FiUnlock } from 'react-icons/fi';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -20,7 +20,6 @@ function formatTime(ms: number): string {
     seconds = seconds % 60;
     minutes = minutes % 60;
 
-    // Pad with zeros to ensure double digits
     const hoursStr = hours.toString().padStart(2, '0');
     const minutesStr = minutes.toString().padStart(2, '0');
     const secondsStr = seconds.toString().padStart(2, '0');
@@ -46,7 +45,7 @@ const HistoryPageContent: React.FC = () => {
 
     const [filterVersionOptions, setFilterVersionOptions] = useState<string[]>([]);
     const [selectedHistoryProject, setSelectedHistoryProject] = useState<string>('');
-    const [allHistoryData, setAllHistoryData] = useState<HistoryItem[]>([]); // 保存所有数据
+    const [allHistoryData, setAllHistoryData] = useState<HistoryItem[]>([]);
     const [filterVersion, setFilterVersion] = useState<string>('');
     const [lockStatus, setLockStatus] = useState<Map<string, number>>(new Map());
     const [countdowns, setCountdowns] = useState<Map<string, number>>(new Map());
@@ -54,24 +53,28 @@ const HistoryPageContent: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const pageSize = 6;
     const [loadingState, setLoadingState] = useState<Map<string, boolean>>(new Map());
-    const [isLoading, setIsLoading] = useState<boolean>(false); // 新增的加载状态
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const didFetch = useRef(false);
 
     const handleHistoryProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedHistoryProject(event.target.value);
-        setFilterVersion(''); // 重置版本选择为“所有版本”
-        setCurrentPage(1); // 重置分页
+        setFilterVersion('');
+        setCurrentPage(1);
     };
 
-    // 获取所有历史数据，仅在组件挂载时调用
     useEffect(() => {
+        if (didFetch.current) return;
+
+        didFetch.current = true;
         const fetchHistory = async () => {
-            setIsLoading(true); // 开始加载
+            setIsLoading(true);
             try {
                 const response = await fetch(`${apiBaseUrl}/history/`);
                 const data = await response.json();
                 const newLockStatus = new Map<string, number>();
                 const newCountdowns = new Map<string, number>();
-                
+
                 data.history.forEach((item: HistoryItem) => {
                     newLockStatus.set(item['iso_name'], item['is_lock']);
                     const endTime = item['end_build_time'] ? new Date(item['end_build_time']) : null;
@@ -90,14 +93,13 @@ const HistoryPageContent: React.FC = () => {
                 console.error('Error fetching history:', error);
                 toast.error('获取历史数据失败');
             } finally {
-                setIsLoading(false); // 结束加载
+                setIsLoading(false);
             }
         };
 
         fetchHistory();
     }, [apiBaseUrl]);
 
-    // 获取版本选项，仅当选择的项目变化时更新
     useEffect(() => {
         const controller = new AbortController();
         const fetchFilterVersion = async () => {
@@ -125,7 +127,6 @@ const HistoryPageContent: React.FC = () => {
         return () => controller.abort();
     }, [selectedHistoryProject, apiBaseUrl]);
 
-    // 使用 useMemo 进行客户端过滤
     const filteredHistoryData = useMemo(() => {
         return allHistoryData.filter((item) =>
             (!selectedHistoryProject || item['app_name'] === selectedHistoryProject) &&
@@ -133,14 +134,13 @@ const HistoryPageContent: React.FC = () => {
         );
     }, [allHistoryData, selectedHistoryProject, filterVersion]);
 
-    // 处理倒计时
     useEffect(() => {
         const timer = setInterval(() => {
             setCountdowns((current) => {
                 const updated = new Map(current);
                 updated.forEach((value, key) => {
                     if (value > 0) {
-                        updated.set(key, value - 5000); // 每 5 秒更新一次
+                        updated.set(key, value - 5000);
                     }
                 });
                 return updated;
@@ -182,7 +182,6 @@ const HistoryPageContent: React.FC = () => {
         <Container className="mt-4">
             <ToastContainer />
             <h3 className="mb-4">历史构建</h3>
-            {/* 固定选择栏 */}
             <div style={{ position: 'sticky', top: 0, backgroundColor: '#f1f1f0', zIndex: 1000, paddingBottom: '0.5rem' }}>
                 <Row className="mb-4">
                     <Col md={6}>
@@ -205,7 +204,6 @@ const HistoryPageContent: React.FC = () => {
                     </Col>
                 </Row>
             </div>
-            {/* 历史数据内容或加载指示器 */}
             {isLoading ? (
                 <div className="loading-spinner-container">
                     <Spinner animation="border" role="status">

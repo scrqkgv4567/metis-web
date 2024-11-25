@@ -1,7 +1,8 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import { Card, Form, Button, Spinner, ProgressBar, Alert, Table } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import styles from '@/app/vm/vm.module.css';
 
 interface selectedHost {
     ip: string;
@@ -33,19 +34,22 @@ const BuildPage: React.FC = () => {
     const [esxiState, setEsxiState] = useState<selectedHost[]>([]);
     const [selectedHost, setSelectedHost] = useState<selectedHost | null>(null);
     const [projectVersion, setProjectVersion] = useState<ProjectVersion>({ data: {} });
-
+    const [isNew, setIsNew] = useState(false);
     const [formData, setFormData] = useState({
         app_name: 'waf',
         app_version: '',
-        channel: '',
+        channel: 'uguardsec',
         ware_version: 'soft',
-        cpu: '',
-        memory: '',
-        disk: '',
-        deploy_host: '',
-        cloud_platform: '',
+        cpu: '4',
+        memory: '8',
+        disk: '50',
+        deploy_host: 'localhost',
+        cloud_platform: 'none',
+        projects: {},
+        is_new: false,
     });
-
+    const getVersiondidFetch = useRef(false);
+    const esxiStateDidFetch = useRef(false);
     useEffect(() => {
         const fetchVersions = async () => {
             try {
@@ -66,6 +70,9 @@ const BuildPage: React.FC = () => {
     useEffect(() => {
         const fetchEsxiState = async () => {
             try {
+                if (esxiStateDidFetch.current) return; // 如果已经请求过数据，直接返回
+
+                esxiStateDidFetch.current = true; // 设置为 true，防止后续重复请求
                 const response = await fetch(`${apiBaseUrl}/esxi_state`);
                 const data = await response.json();
                 setEsxiState(
@@ -96,7 +103,16 @@ const BuildPage: React.FC = () => {
                     body: JSON.stringify({ app_name: formData.app_name, app_version: formData.app_version })
                 });
                 const data = await response.json();
+
+                // 保持原有选择的提交记录
                 setProjectVersion(data);
+                setFormData((prevFormData) => ({
+                    ...prevFormData,
+                    projects: Object.keys(data.data).reduce((acc, key) => {
+                        acc[key] = prevFormData.projects[key] || Object.keys(data.data[key])[0];  // 如果原来有选择，则保持选择，否则默认选择第一个提交记录
+                        return acc;
+                    }, {} as Record<string, string>)
+                }));
             } finally {
                 setIsLoading(false);
             }
@@ -118,14 +134,10 @@ const BuildPage: React.FC = () => {
     const handleFormSubmit = async () => {
         setIsLoading(true);
         try {
-            const formDataToSubmit = new FormData();
-            Object.keys(formData).forEach((key) => {
-                formDataToSubmit.append(key, (formData as any)[key]);
-            });
-
             const response = await fetch(`${apiBaseUrl}/build/`, {
                 method: 'POST',
-                body: formDataToSubmit,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
             });
             await response.json();
             setNotification({ show: true, message: '验证构建已开始' });
@@ -139,14 +151,10 @@ const BuildPage: React.FC = () => {
     const handleProductionBuild = async () => {
         setIsLoading(true);
         try {
-            const formDataToSubmit = new FormData();
-            Object.keys(formData).forEach((key) => {
-                formDataToSubmit.append(key, (formData as any)[key]);
-            });
-
             const response = await fetch(`${apiBaseUrl}/probuild/`, {
                 method: 'POST',
-                body: formDataToSubmit,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
             });
             await response.json();
             setNotification({ show: true, message: '生产构建已开始' });
@@ -155,6 +163,11 @@ const BuildPage: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleUseNewBuild = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, is_new: e.target.checked });
+        setIsNew(e.target.checked);
     };
 
     return (
@@ -253,7 +266,6 @@ const BuildPage: React.FC = () => {
                                     value={formData.cpu}
                                     onChange={(e) => setFormData({ ...formData, cpu: e.target.value })}
                                 >
-                                    <option value="">请选择</option>
                                     <option value="4">4 核</option>
                                     <option value="8">8 核</option>
                                     <option value="16">16 核</option>
@@ -267,7 +279,6 @@ const BuildPage: React.FC = () => {
                                     value={formData.memory}
                                     onChange={(e) => setFormData({ ...formData, memory: e.target.value })}
                                 >
-                                    <option value="">请选择</option>
                                     <option value="8">8 GB</option>
                                     <option value="16">16 GB</option>
                                     <option value="32">32 GB</option>
@@ -280,7 +291,6 @@ const BuildPage: React.FC = () => {
                                     value={formData.disk}
                                     onChange={(e) => setFormData({ ...formData, disk: e.target.value })}
                                 >
-                                    <option value="">请选择</option>
                                     <option value="50">50 GB</option>
                                     <option value="100">100 GB</option>
                                     <option value="150">150 GB</option>
@@ -335,30 +345,46 @@ const BuildPage: React.FC = () => {
                             <h5>{formData.app_name} {formData.app_version} 版本信息</h5>
                             <Table striped bordered hover>
                                 <thead>
-                                    <tr>
-                                        <th>组件名称</th>
-                                        <th>版本号</th>
-                                        <th>提交记录</th>
-                                    </tr>
+                                <tr>
+                                    <th>组件名称</th>
+                                    <th>版本号</th>
+                                    <th>提交记录</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {Object.keys(projectVersion.data).length > 0 && Object.keys(projectVersion.data).map((key) => (
-                                        <tr key={key}>
-                                            <td>{key.split('@')[0]}</td>
-                                            <td>{key.split('@')[1]}</td>
-                                            <td>
-                                                <Form.Control as="select">
-                                                    {Object.keys(projectVersion.data[key]).map((commitId) => (
-                                                        <option key={commitId} value={commitId}>
-                                                            {projectVersion.data[key][commitId]}
-                                                        </option>
-                                                    ))}
-                                                </Form.Control>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                {Object.keys(projectVersion.data).length > 0 && Object.keys(projectVersion.data).map((key) => (
+                                    <tr key={key}>
+                                        <td>{key.split('@')[0]}</td>
+                                        <td>{key.split('@')[1]}</td>
+                                        <td>
+                                            <Form.Control
+                                                as="select"
+                                                data-component-select={key}
+                                                value={formData.projects[key] || ''}
+                                                onChange={(e) => setFormData({ ...formData, projects: { ...formData.projects, [key]: e.target.value } })}
+                                            >
+                                                <option value="">请选择提交记录</option>
+                                                {Object.keys(projectVersion.data[key]).map((commitId) => (
+                                                    <option key={commitId} value={commitId}>
+                                                        {projectVersion.data[key][commitId]}
+                                                    </option>
+                                                ))}
+                                            </Form.Control>
+                                        </td>
+                                    </tr>
+                                ))}
                                 </tbody>
                             </Table>
+                            <div>
+                                <label className={styles.vmToggle} >全新构建：
+                                    <input
+                                        type="checkbox"
+                                        checked={isNew}
+                                        onChange={handleUseNewBuild}
+                                    />
+                                    <span></span>
+                                </label>
+                            </div>
                         </div>
                     )}
                     <div className="d-flex justify-content-between mt-3">

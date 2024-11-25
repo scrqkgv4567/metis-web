@@ -58,9 +58,9 @@
 /* 主要内容区样式 */
 .content {
     margin-left: 250px; /* 为固定导航栏留出空间 */
+    min-width: 1080px;
     flex-grow: 1;
     background-color: rgb(241 241 240);
-    padding: 0px;
     overflow-y: auto;
     transition: margin-left 0.3s;
 }
