@@ -124,7 +124,7 @@ const TaskPageContent  = () => {
                     <TextField
                         variant="outlined"
                         fullWidth
-                        InputProps={{ readOnly: true }}
+                        slotProps={{ input: { readOnly: true } }}
                         value={taskState.deploy_id || ''}
                         sx={{ mb: 3 }}
                     />
@@ -133,7 +133,7 @@ const TaskPageContent  = () => {
                     <TextField
                         variant="outlined"
                         fullWidth
-                        InputProps={{ readOnly: true }}
+                        slotProps={{ input: { readOnly: true } }}
                         value={taskState.step || ''}
                         sx={{ mb: 3 }}
                     />
@@ -142,7 +142,7 @@ const TaskPageContent  = () => {
                     <TextField
                         variant="outlined"
                         fullWidth
-                        InputProps={{ readOnly: true }}
+                        slotProps={{ input: { readOnly: true } }}
                         value={taskState.state || ''}
                         sx={{ mb: 3 }}
                     />

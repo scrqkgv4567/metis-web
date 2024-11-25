@@ -68,7 +68,6 @@ const HistoryPageContent: React.FC = () => {
             setIsLoading(true); // 开始加载
             try {
                 const response = await fetch(`${apiBaseUrl}/history/`);
-                if (!response.ok) throw new Error('Failed to fetch history');
                 const data = await response.json();
                 const newLockStatus = new Map<string, number>();
                 const newCountdowns = new Map<string, number>();
@@ -113,7 +112,6 @@ const HistoryPageContent: React.FC = () => {
                     body: JSON.stringify({ project_name: selectedHistoryProject }),
                     signal: controller.signal,
                 });
-                if (!response.ok) throw new Error('Failed to fetch versions');
                 const data = await response.json();
                 setFilterVersionOptions(data.versions || []);
             } catch (error) {

@@ -1,8 +1,9 @@
-'use client'
+'use client';
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Spinner, Container, Table, Button } from 'react-bootstrap';
+import { Spinner, Container, Table } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './vm.css';
 
 interface Vm {
     id: number;
@@ -18,9 +19,9 @@ const VmsDashboard: React.FC = () => {
     const [vms, setVms] = useState<Vm[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const [notification, setNotification] = useState({ show: false, message: '' });
 
     useEffect(() => {
-        // Fetch VM state from API
         const fetchVmsState = async () => {
             try {
                 const response = await axios.get(`${apiBaseUrl}/show_vms_state`);
@@ -42,8 +43,12 @@ const VmsDashboard: React.FC = () => {
                 vm_uuid: uuid,
             });
             if (response.status === 200) {
-                alert("虚拟机操作成功");
-                // Refresh the VMs state
+                setNotification({ show: true, message: '虚拟机操作成功' });
+
+                setTimeout(() => {
+                    setNotification({ show: false, message: '' });
+                }, 3000);
+
                 setVms(prevState => prevState.map(vm => {
                     if (vm.vm_uuid === uuid) {
                         return { ...vm, vm_state: action === 'poweron' ? 'poweredOn' : 'poweredOff' };
@@ -57,9 +62,19 @@ const VmsDashboard: React.FC = () => {
         }
     };
 
+    const toggleVmState = (checked: boolean, uuid: string) => {
+        const action = checked ? "poweron" : "poweroff";
+        handleVmAction(action, uuid).then(() => console.log("VM action performed successfully"));
+    };
+
     return (
         <Container>
             <h1 className="text-center my-4">测试用虚拟机资源列表</h1>
+            {notification.show && (
+                <div className="notification">
+                    {notification.message}
+                </div>
+            )}
             {loading ? (
                 <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
                     <Spinner animation="border" role="status" style={{ width: '5rem', height: '5rem' }}>
@@ -87,21 +102,14 @@ const VmsDashboard: React.FC = () => {
                             <td>{vm.vm_name}</td>
                             <td>{vm.vm_host}</td>
                             <td>
-                                <Button
-                                    variant="success"
-                                    onClick={() => handleVmAction("poweron", vm.vm_uuid)}
-                                    disabled={vm.vm_state === "poweredOn"}
-                                    className="me-2"
-                                >
-                                    {vm.vm_state === "poweredOn" ? "已开机" : "开机"}
-                                </Button>
-                                <Button
-                                    variant="danger"
-                                    onClick={() => handleVmAction("poweroff", vm.vm_uuid)}
-                                    disabled={vm.vm_state === "poweredOff"}
-                                >
-                                    {vm.vm_state === "poweredOff" ? "已关机" : "关机"}
-                                </Button>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={vm.vm_state === "poweredOn"}
+                                        onChange={(e) => toggleVmState(e.target.checked, vm.vm_uuid)}
+                                    />
+                                    <span></span>
+                                </label>
                             </td>
                         </tr>
                     ))}
