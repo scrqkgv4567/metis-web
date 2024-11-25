@@ -24,6 +24,10 @@ interface ProjectVersion {
     };
 }
 
+interface ProjectsData {
+    [key: string]: string;
+}
+
 const BuildPage: React.FC = () => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -45,10 +49,10 @@ const BuildPage: React.FC = () => {
         disk: '50',
         deploy_host: 'localhost',
         cloud_platform: 'none',
-        projects: {},
+        projects: {} as ProjectsData,
         is_new: false,
     });
-    const getVersiondidFetch = useRef(false);
+
     const esxiStateDidFetch = useRef(false);
     useEffect(() => {
         const fetchVersions = async () => {
@@ -64,7 +68,7 @@ const BuildPage: React.FC = () => {
                 console.error('Failed to fetch versions:', error);
             }
         };
-        fetchVersions();
+        fetchVersions().then(() =>  console.log('Versions fetched successfully'));
     }, [formData.app_name, apiBaseUrl]);
 
     useEffect(() => {
@@ -78,19 +82,19 @@ const BuildPage: React.FC = () => {
                 setEsxiState(
                     data.data.map((item: any) => ({
                         ip: Object.keys(item)[0],
-                        diskTotal: item[Object.keys(item)[0]].disk_total,
-                        diskUsage: item[Object.keys(item)[0]].disk_usage,
-                        memTotal: item[Object.keys(item)[0]].mem_total,
-                        memUsage: item[Object.keys(item)[0]].mem_usage,
-                        cpuTotal: item[Object.keys(item)[0]].cpu_total,
-                        cpuUsage: item[Object.keys(item)[0]].cpu_usage,
+                        // diskTotal: item[Object.keys(item)[0]].disk_total,
+                        // diskUsage: item[Object.keys(item)[0]].disk_usage,
+                        // memTotal: item[Object.keys(item)[0]].mem_total,
+                        // memUsage: item[Object.keys(item)[0]].mem_usage,
+                        // cpuTotal: item[Object.keys(item)[0]].cpu_total,
+                        // cpuUsage: item[Object.keys(item)[0]].cpu_usage,
                     }))
                 );
             } catch (error) {
                 console.error('Error fetching ESXi state:', error);
             }
         };
-        fetchEsxiState();
+        fetchEsxiState().then(() => console.log('ESXi state fetched successfully'));
     }, [apiBaseUrl]);
 
     useEffect(() => {
@@ -111,7 +115,7 @@ const BuildPage: React.FC = () => {
                     projects: Object.keys(data.data).reduce((acc, key) => {
                         acc[key] = prevFormData.projects[key] || Object.keys(data.data[key])[0];  // 如果原来有选择，则保持选择，否则默认选择第一个提交记录
                         return acc;
-                    }, {} as Record<string, string>)
+                    }, {} as ProjectsData)
                 }));
             } finally {
                 setIsLoading(false);
