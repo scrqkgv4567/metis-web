@@ -82,12 +82,12 @@ const BuildPage: React.FC = () => {
                 setEsxiState(
                     data.data.map((item: any) => ({
                         ip: Object.keys(item)[0],
-                        // diskTotal: item[Object.keys(item)[0]].disk_total,
-                        // diskUsage: item[Object.keys(item)[0]].disk_usage,
-                        // memTotal: item[Object.keys(item)[0]].mem_total,
-                        // memUsage: item[Object.keys(item)[0]].mem_usage,
-                        // cpuTotal: item[Object.keys(item)[0]].cpu_total,
-                        // cpuUsage: item[Object.keys(item)[0]].cpu_usage,
+                        diskTotal: item[Object.keys(item)[0]].disk_total,
+                        diskUsage: item[Object.keys(item)[0]].disk_usage,
+                        memTotal: item[Object.keys(item)[0]].mem_total,
+                        memUsage: item[Object.keys(item)[0]].mem_usage,
+                        cpuTotal: item[Object.keys(item)[0]].cpu_total,
+                        cpuUsage: item[Object.keys(item)[0]].cpu_usage,
                     }))
                 );
             } catch (error) {
