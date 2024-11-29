@@ -1,16 +1,29 @@
 'use client';
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, Suspense, lazy, useEffect } from 'react';
 import { Spinner } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 import { useSearchParams } from 'next/navigation';
+
 const BuildPage = lazy(() => import('./build/page'));
 const HistoryPage = lazy(() => import('./history/page'));
 const VMPage = lazy(() => import('./vm/page'));
+
 const HomePage: React.FC = () => {
-    const searchParams = useSearchParams();
-    const initialPage = searchParams.get('page') as 'history' | 'build' | 'vm' || 'build';
-    const [activePage, setActivePage] = useState<'history' | 'build' | 'vm'>(initialPage);
+    const [activePage, setActivePage] = useState<'history' | 'build' | 'vm'>('build');
+    const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        setSearchParams(params);
+    }, []);
+
+    useEffect(() => {
+        if (searchParams) {
+            const initialPage = searchParams.get('page') as 'history' | 'build' | 'vm' || 'build';
+            setActivePage(initialPage);
+        }
+    }, [searchParams]);
 
     const renderContent = () => {
         switch (activePage) {
@@ -27,7 +40,6 @@ const HomePage: React.FC = () => {
 
     return (
         <div className="app-container">
-            {/* 左侧导航栏 */}
             <div className="sidebar">
                 <div className="logo">
                     <h2>Metis</h2>
@@ -57,15 +69,18 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="content">
-                <Suspense fallback={
-                    <div className="spinner-container">
-                        <Spinner animation="border" variant="primary" />
-                    </div>
-                }>
-                    {renderContent()}
-                </Suspense>
+                {searchParams ? (
+                    <Suspense fallback={
+                        <div className="spinner-container">
+                            <Spinner animation="border" variant="primary" />
+                        </div>
+                    }>
+                        {renderContent()}
+                    </Suspense>
+                ) : null}
             </div>
         </div>
     );
 };
+
 export default HomePage;

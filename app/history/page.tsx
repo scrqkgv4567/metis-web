@@ -244,6 +244,9 @@ const HistoryPageContent: React.FC = () => {
                                             <Card.Text><strong>次数:</strong> {historyItem['ci_count']}</Card.Text>
                                             <Card.Text><strong>宿主机IP:</strong> {historyItem['deploy_host']}</Card.Text>
                                             <Card.Text><strong>IP:</strong> {historyItem['ip']}</Card.Text>
+                                            {/*<Card.Text>*/}
+                                            {/*    <strong>剩余时间:</strong> {formatTime(countdowns.get(historyItem['iso_name']) ?? 0)}*/}
+                                            {/*</Card.Text>*/}
                                             <Link href={`/task?deploy_id=${historyItem['iso_name']?.split('-')[2]}`} passHref>
                                                 <Button variant="link" className="p-0">查看详情</Button>
                                             </Link>

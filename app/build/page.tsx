@@ -4,6 +4,26 @@ import { Card, Form, Button, Spinner, ProgressBar, Alert, Table } from 'react-bo
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from '@/app/vm/vm.module.css';
 
+interface EsxiItem {
+    disk_total: number;
+    disk_usage: number;
+    mem_total: number;
+    mem_usage: number;
+    cpu_total: number;
+    cpu_usage: number;
+}
+
+interface EsxiState {
+    ip: string;
+    diskTotal: number;
+    diskUsage: number;
+    memTotal: number;
+    memUsage: number;
+    cpuTotal: number;
+    cpuUsage: number;
+}
+
+
 interface selectedHost {
     ip: string;
     diskTotal: number;
@@ -35,7 +55,7 @@ const BuildPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [notification, setNotification] = useState({ show: false, message: '' });
     const [appVersionOptions, setAppVersionOptions] = useState<string[]>([]);
-    const [esxiState, setEsxiState] = useState<selectedHost[]>([]);
+    const [esxiState, setEsxiState] = useState<EsxiState[]>([]);
     const [selectedHost, setSelectedHost] = useState<selectedHost | null>(null);
     const [projectVersion, setProjectVersion] = useState<ProjectVersion>({ data: {} });
     const [isNew, setIsNew] = useState(false);
@@ -80,7 +100,7 @@ const BuildPage: React.FC = () => {
                 const response = await fetch(`${apiBaseUrl}/esxi_state`);
                 const data = await response.json();
                 setEsxiState(
-                    data.data.map((item: any) => ({
+                    data.data.map((item: Record<string, EsxiItem>) => ({
                         ip: Object.keys(item)[0],
                         diskTotal: item[Object.keys(item)[0]].disk_total,
                         diskUsage: item[Object.keys(item)[0]].disk_usage,
