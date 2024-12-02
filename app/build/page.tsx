@@ -432,13 +432,13 @@ const BuildPage: React.FC = () => {
                                 >
                                     {isLoading ? <Spinner animation="border" size="sm" /> : '验证构建'}
                                 </Button>
-                                <Button
-                                    variant="danger"
-                                    onClick={handleProductionBuild}
-                                    disabled={isLoading}
-                                >
-                                    {isLoading ? <Spinner animation="border" size="sm" /> : '生产构建'}
-                                </Button>
+                                {/*<Button*/}
+                                {/*    variant="danger"*/}
+                                {/*    onClick={handleProductionBuild}*/}
+                                {/*    disabled={isLoading}*/}
+                                {/*>*/}
+                                {/*    {isLoading ? <Spinner animation="border" size="sm" /> : '生产构建'}*/}
+                                {/*</Button>*/}
                             </>
                         )}
                     </div>
