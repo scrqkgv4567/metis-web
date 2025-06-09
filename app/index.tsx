@@ -11,16 +11,11 @@ const VMPage = lazy(() => import('./vm/page'));
 
 const HomePage: React.FC = () => {
     const [activePage, setActivePage] = useState<'history' | 'build' | 'vm'>('build');
-    const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null);
+    const searchParams = useSearchParams();
 
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        setSearchParams(params);
-    }, []);
-
-    useEffect(() => {
-        if (searchParams) {
-            const initialPage = searchParams.get('page') as 'history' | 'build' | 'vm' || 'build';
+        const initialPage = searchParams.get('page') as 'history' | 'build' | 'vm' | null;
+        if (initialPage) {
             setActivePage(initialPage);
         }
     }, [searchParams]);
@@ -69,15 +64,15 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="content">
-                {searchParams ? (
-                    <Suspense fallback={
+                <Suspense
+                    fallback={
                         <div className="spinner-container">
                             <Spinner animation="border" variant="primary" />
                         </div>
-                    }>
-                        {renderContent()}
-                    </Suspense>
-                ) : null}
+                    }
+                >
+                    {renderContent()}
+                </Suspense>
             </div>
         </div>
     );
