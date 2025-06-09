@@ -8,7 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './history.css';
 
-function formatTime(ms: number): string {
+export function formatTime(ms: number): string {
     if (ms <= 0) {
         return '00:00:00';
     }
