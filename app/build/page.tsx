@@ -49,7 +49,8 @@ interface ProjectsData {
 }
 
 const BuildPage: React.FC = () => {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    // Default to an empty string if the environment variable is undefined
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
     const [currentStep, setCurrentStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
