@@ -18,7 +18,8 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 const TaskPageContent  = () => {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    // Default to an empty string if the environment variable is undefined
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
     const router = useRouter();
 
     const searchParams = useSearchParams();

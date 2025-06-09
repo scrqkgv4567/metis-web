@@ -18,7 +18,8 @@ interface Vm {
 const VmsDashboard: React.FC = () => {
     const [vms, setVms] = useState<Vm[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    // Default to an empty string if the environment variable is undefined
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
     const [notification, setNotification] = useState({ show: false, message: '' });
 
     const didFetch = useRef(false);
