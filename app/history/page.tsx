@@ -2,8 +2,19 @@
 import React, { useEffect, useState, useMemo, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { FiLock, FiUnlock } from 'react-icons/fi';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Card, Button, Row, Col, Form, Badge, Spinner } from 'react-bootstrap';
+import {
+    Container,
+    Card,
+    Button,
+    Grid,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Badge,
+    CircularProgress,
+    Box,
+} from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './history.css';
@@ -216,6 +227,7 @@ const HistoryPageContent: React.FC = () => {
 
             {/* 顶部筛选栏 */}
             <div style={{ position: 'sticky', top: 0, backgroundColor: '#f1f1f0', zIndex: 1000, paddingBottom: '0.5rem' }}>
+<<<<<<< HEAD
                 <Row className="mb-4">
                     <Col md={6}>
                         <Form.Select value={selectedHistoryProject} onChange={handleHistoryProjectChange}>
@@ -315,10 +327,77 @@ const HistoryPageContent: React.FC = () => {
                                                 variant="outline-secondary"
                                                 onClick={() =>
                                                     toggleLock(historyItem.iso_name, lockStatus.get(historyItem.iso_name) ?? 0)
+=======
+                <Grid container spacing={2} className="mb-4">
+                    <Grid item xs={12} md={6}>
+                        <FormControl fullWidth>
+                            <InputLabel id="history-project-label">项目</InputLabel>
+                            <Select
+                                labelId="history-project-label"
+                                value={selectedHistoryProject}
+                                label="项目"
+                                onChange={handleHistoryProjectChange}
+                            >
+                                <MenuItem value="">所有项目</MenuItem>
+                                <MenuItem value="waf">waf</MenuItem>
+                                <MenuItem value="omas">堡垒机</MenuItem>
+                                <MenuItem value="lams">日审</MenuItem>
+                                <MenuItem value="dsas">数审</MenuItem>
+                                <MenuItem value="cosa">二合一</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <FormControl fullWidth>
+                            <InputLabel id="history-version-label">版本</InputLabel>
+                            <Select
+                                labelId="history-version-label"
+                                value={filterVersion}
+                                label="版本"
+                                onChange={(e) => { setFilterVersion(e.target.value as string); setCurrentPage(1); }}
+                            >
+                                <MenuItem value="">所有版本</MenuItem>
+                                {filterVersionOptions.map((version) => (
+                                    <MenuItem key={version} value={version}>{version}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                </Grid>
+            </div>
+            {isLoading ? (
+                <Box className="loading-spinner-container">
+                    <CircularProgress />
+                </Box>
+            ) : (
+                <Grid container spacing={4}>
+                    {Array.isArray(paginatedData) && paginatedData.length > 0 ? (
+                        <>
+                            {paginatedData.map((historyItem, index) => (
+                                <Grid item xs={12} md={4} key={index} className={index >= paginatedData.length - 3 && !showMore ? 'opacity-50' : ''}>
+                                    <Card className="h-100 shadow-sm">
+                                        <CardContent>
+                                            <Badge
+                                                color={
+                                                    historyItem['state'] === 'STOPPED'
+                                                        ? 'secondary'
+                                                        : historyItem['state'] === 'RUNNING'
+                                                            ? 'primary'
+                                                            : historyItem['state'] === 'DELETE'
+                                                                ? 'error'
+                                                                : historyItem['state'] === 'SUCCESS'
+                                                                    ? 'success'
+                                                                    : historyItem['state'] === 'FAILURE'
+                                                                        ? 'error'
+                                                                        : historyItem['state'] === 'VERIFIED'
+                                                                            ? 'info'
+                                                                            : 'warning'
+>>>>>>> d878dbf2cb03cd9b1a235ee98afcb19a73944d38
                                                 }
                                                 className="float-end"
                                                 disabled={loadingState.get(historyItem.iso_name)}
                                             >
+<<<<<<< HEAD
                                                 {loadingState.get(historyItem.iso_name) ? (
                                                     <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
                                                 ) : lockStatus.get(historyItem.iso_name) === 1 ? (
@@ -346,6 +425,53 @@ const HistoryPageContent: React.FC = () => {
                 >
                     展示更多
                 </Button>
+=======
+                                                {historyItem['state']}
+                                            </Badge>
+                                            <Typography variant="body2"><strong>项目:</strong> {historyItem['app_name']}</Typography>
+                                            <Typography variant="body2"><strong>版本:</strong> {historyItem['app_version']}</Typography>
+                                            <Typography variant="body2"><strong>时间:</strong> {historyItem['start_build_time']} ～ {historyItem['end_build_time']}</Typography>
+                                            <Typography variant="body2"><strong>次数:</strong> {historyItem['ci_count']}</Typography>
+                                            <Typography variant="body2"><strong>宿主机IP:</strong> {historyItem['deploy_host']}</Typography>
+                                            <Typography variant="body2"><strong>IP:</strong> {historyItem['ip']}</Typography>
+                                            {/*<Card.Text>*/}
+                                            {/*    <strong>剩余时间:</strong> {formatTime(countdowns.get(historyItem['iso_name']) ?? 0)}*/}
+                                            {/*</Card.Text>*/}
+                                            <Link href={`/task?deploy_id=${historyItem['iso_name']?.split('-')[2]}`} passHref>
+                                                <Button variant="text" sx={{ p: 0 }}>查看详情</Button>
+                                            </Link>
+                                            {(historyItem['state'] === 'SUCCESS' || historyItem['state'] === 'VERIFIED') &&
+                                                historyItem['deploy_host'] !== '127.0.0.1' && (
+                                                    <Button
+                                                        variant="outlined"
+                                                        onClick={() => toggleLock(historyItem['iso_name'], lockStatus.get(historyItem['iso_name']) ?? 0)}
+                                                        sx={{ float: 'right' }}
+                                                        disabled={loadingState.get(historyItem['iso_name'])}
+                                                    >
+                                                        {loadingState.get(historyItem['iso_name']) ? (
+                                                            <CircularProgress size={20} />
+                                                        ) : lockStatus.get(historyItem['iso_name']) === 1 ? <FiLock /> : <FiUnlock />}
+                                                    </Button>
+                                                )}
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                            ))}
+                            {!showMore && filteredHistoryData.length > pageSize && (
+                                <Button
+                                    variant="link"
+                                    className="mx-auto d-block mt-4 animate__animated animate__pulse animate__infinite"
+                                    onClick={() => setCurrentPage((prevPage) => prevPage + 1)}
+                                >
+                                    展示更多
+                                </Button>
+                            )}
+                        </>
+                    ) : (
+                        <div>暂无历史数据</div>
+                    )}
+                </Grid>
+>>>>>>> d878dbf2cb03cd9b1a235ee98afcb19a73944d38
             )}
         </Container>
     );

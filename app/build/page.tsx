@@ -1,7 +1,25 @@
 'use client';
 import React, {useState, useEffect, useRef} from 'react';
-import { Card, Form, Button, Spinner, ProgressBar, Alert, Table } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import {
+    Box,
+    Card,
+    CardHeader,
+    CardContent,
+    Button,
+    CircularProgress,
+    Alert,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    LinearProgress,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody,
+    Typography,
+} from '@mui/material';
 import styles from '@/app/vm/vm.module.css';
 
 interface EsxiItem {
@@ -198,84 +216,90 @@ const BuildPage: React.FC = () => {
     };
 
     return (
-        <div className="container mt-4">
-            <Card className="shadow-sm">
-                <Card.Header>
-                    <h5>生产构建</h5>
-                </Card.Header>
-                <Card.Body>
+        <Box sx={{ mt: 4 }}>
+            <Card variant="outlined">
+                <CardHeader title="生产构建" />
+                <CardContent>
                     {notification.show && (
-                        <Alert variant="info" onClose={() => setNotification({ show: false, message: '' })} dismissible>
+                        <Alert severity="info" onClose={() => setNotification({ show: false, message: '' })}>
                             {notification.message}
                         </Alert>
                     )}
                     {currentStep === 1 && (
-                        <Form>
-                            <Form.Group className="mb-3">
-                                <Form.Label>项目选择</Form.Label>
-                                <Form.Control
-                                    as="select"
+                        <>
+                            <FormControl fullWidth margin="normal">
+                                <InputLabel id="app-name-label">项目选择</InputLabel>
+                                <Select
+                                    labelId="app-name-label"
                                     value={formData.app_name}
+                                    label="项目选择"
                                     onChange={(e) =>
-                                        setFormData({ ...formData, app_name: e.target.value, app_version: '' })
+                                        setFormData({ ...formData, app_name: e.target.value as string, app_version: '' })
                                     }
                                 >
-                                    <option value="waf">WAF</option>
-                                    <option value="omas">堡垒机</option>
-                                    <option value="lams">日审</option>
-                                    <option value="dsas">数审</option>
-                                    <option value="cosa">二合一</option>
-                                </Form.Control>
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>版本号</Form.Label>
-                                <Form.Control
-                                    as="select"
+                                    <MenuItem value="waf">WAF</MenuItem>
+                                    <MenuItem value="omas">堡垒机</MenuItem>
+                                    <MenuItem value="lams">日审</MenuItem>
+                                    <MenuItem value="dsas">数审</MenuItem>
+                                    <MenuItem value="cosa">二合一</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <FormControl fullWidth margin="normal">
+                                <InputLabel id="app-version-label">版本号</InputLabel>
+                                <Select
+                                    labelId="app-version-label"
                                     value={formData.app_version}
-                                    onChange={(e) => setFormData({ ...formData, app_version: e.target.value })}
+                                    label="版本号"
+                                    onChange={(e) => setFormData({ ...formData, app_version: e.target.value as string })}
                                 >
-                                    <option value="">请选择版本</option>
+                                    <MenuItem value="">
+                                        <em>请选择版本</em>
+                                    </MenuItem>
                                     {appVersionOptions.map((version) => (
-                                        <option key={version} value={version}>
+                                        <MenuItem key={version} value={version}>
                                             {version}
-                                        </option>
+                                        </MenuItem>
                                     ))}
-                                </Form.Control>
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>型号</Form.Label>
-                                <Form.Control
-                                    as="select"
+                                </Select>
+                            </FormControl>
+                            <FormControl fullWidth margin="normal">
+                                <InputLabel id="ware-version-label">型号</InputLabel>
+                                <Select
+                                    labelId="ware-version-label"
                                     value={formData.ware_version}
-                                    onChange={(e) => setFormData({ ...formData, ware_version: e.target.value })}
+                                    label="型号"
+                                    onChange={(e) => setFormData({ ...formData, ware_version: e.target.value as string })}
                                 >
-                                    <option value="soft">软件版</option>
-                                    <option value="hard">硬件版</option>
-                                    <option value="cloud">云版</option>
-                                    <option value="soft_cloud">全都要</option>
-                                </Form.Control>
-                            </Form.Group>
+                                    <MenuItem value="soft">软件版</MenuItem>
+                                    <MenuItem value="hard">硬件版</MenuItem>
+                                    <MenuItem value="cloud">云版</MenuItem>
+                                    <MenuItem value="soft_cloud">全都要</MenuItem>
+                                </Select>
+                            </FormControl>
                             {formData.ware_version === 'cloud' && (
-                                <Form.Group className="mb-3">
-                                    <Form.Label>平台</Form.Label>
-                                    <Form.Control
-                                        as="select"
+                                <FormControl fullWidth margin="normal">
+                                    <InputLabel id="platform-label">平台</InputLabel>
+                                    <Select
+                                        labelId="platform-label"
                                         value={formData.cloud_platform}
-                                        onChange={(e) => setFormData({ ...formData, cloud_platform: e.target.value })}
+                                        label="平台"
+                                        onChange={(e) => setFormData({ ...formData, cloud_platform: e.target.value as string })}
                                     >
-                                        <option value="aliyun">阿里云</option>
-                                        <option value="tencent">腾讯云</option>
-                                        <option value="huawei">华为云</option>
-                                    </Form.Control>
-                                </Form.Group>
+                                        <MenuItem value="aliyun">阿里云</MenuItem>
+                                        <MenuItem value="tencent">腾讯云</MenuItem>
+                                        <MenuItem value="huawei">华为云</MenuItem>
+                                    </Select>
+                                </FormControl>
                             )}
-                            <Form.Group className="mb-3">
-                                <Form.Label>渠道</Form.Label>
-                                <Form.Control
-                                    as="select"
+                            <FormControl fullWidth margin="normal">
+                                <InputLabel id="channel-label">渠道</InputLabel>
+                                <Select
+                                    labelId="channel-label"
                                     value={formData.channel}
-                                    onChange={(e) => setFormData({ ...formData, channel: e.target.value })}
+                                    label="渠道"
+                                    onChange={(e) => setFormData({ ...formData, channel: e.target.value as string })}
                                 >
+<<<<<<< HEAD
                                     <option value="uguardsec">天磊</option>
                                     <option value="sunyainfo">上元信安</option>
                                     <option value="ruisuyun">锐速云</option>
@@ -284,124 +308,150 @@ const BuildPage: React.FC = () => {
                                 </Form.Control>
                             </Form.Group>
                         </Form>
+=======
+                                    <MenuItem value="uguardsec">天磊</MenuItem>
+                                    <MenuItem value="sunyainfo">上元信安</MenuItem>
+                                    <MenuItem value="ruisuyun">锐速云</MenuItem>
+                                    <MenuItem value="whiteboard">白板</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </>
+>>>>>>> d878dbf2cb03cd9b1a235ee98afcb19a73944d38
                     )}
                     {currentStep === 2 && (
-                        <Form>
-                            <Form.Group className="mb-3">
-                                <Form.Label>CPU 选择</Form.Label>
-                                <Form.Control
-                                    as="select"
+                        <>
+                            <FormControl fullWidth margin="normal">
+                                <InputLabel id="cpu-label">CPU 选择</InputLabel>
+                                <Select
+                                    labelId="cpu-label"
                                     value={formData.cpu}
-                                    onChange={(e) => setFormData({ ...formData, cpu: e.target.value })}
+                                    label="CPU 选择"
+                                    onChange={(e) => setFormData({ ...formData, cpu: e.target.value as string })}
                                 >
-                                    <option value="4">4 核</option>
-                                    <option value="8">8 核</option>
-                                    <option value="16">16 核</option>
-                                    <option value="32">32 核</option>
-                                </Form.Control>
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>内存</Form.Label>
-                                <Form.Control
-                                    as="select"
+                                    <MenuItem value="4">4 核</MenuItem>
+                                    <MenuItem value="8">8 核</MenuItem>
+                                    <MenuItem value="16">16 核</MenuItem>
+                                    <MenuItem value="32">32 核</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <FormControl fullWidth margin="normal">
+                                <InputLabel id="memory-label">内存</InputLabel>
+                                <Select
+                                    labelId="memory-label"
                                     value={formData.memory}
-                                    onChange={(e) => setFormData({ ...formData, memory: e.target.value })}
+                                    label="内存"
+                                    onChange={(e) => setFormData({ ...formData, memory: e.target.value as string })}
                                 >
-                                    <option value="8">8 GB</option>
-                                    <option value="16">16 GB</option>
-                                    <option value="32">32 GB</option>
-                                </Form.Control>
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>硬盘</Form.Label>
-                                <Form.Control
-                                    as="select"
+                                    <MenuItem value="8">8 GB</MenuItem>
+                                    <MenuItem value="16">16 GB</MenuItem>
+                                    <MenuItem value="32">32 GB</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <FormControl fullWidth margin="normal">
+                                <InputLabel id="disk-label">硬盘</InputLabel>
+                                <Select
+                                    labelId="disk-label"
                                     value={formData.disk}
-                                    onChange={(e) => setFormData({ ...formData, disk: e.target.value })}
+                                    label="硬盘"
+                                    onChange={(e) => setFormData({ ...formData, disk: e.target.value as string })}
                                 >
-                                    <option value="50">50 GB</option>
-                                    <option value="100">100 GB</option>
-                                    <option value="150">150 GB</option>
-                                    <option value="250">250 GB</option>
-                                    <option value="500">500 GB</option>
-                                </Form.Control>
-                            </Form.Group>
+                                    <MenuItem value="50">50 GB</MenuItem>
+                                    <MenuItem value="100">100 GB</MenuItem>
+                                    <MenuItem value="150">150 GB</MenuItem>
+                                    <MenuItem value="250">250 GB</MenuItem>
+                                    <MenuItem value="500">500 GB</MenuItem>
+                                </Select>
+                            </FormControl>
                             {(formData.ware_version === 'soft' || formData.ware_version === 'soft_cloud') && (
-                                <Form.Group className="mb-3">
-                                    <Form.Label>宿主机</Form.Label>
-                                    <Form.Control
-                                        as="select"
+                                <FormControl fullWidth margin="normal">
+                                    <InputLabel id="host-label">宿主机</InputLabel>
+                                    <Select
+                                        labelId="host-label"
                                         value={formData.deploy_host}
+                                        label="宿主机"
                                         onChange={(e) => {
                                             const selected = esxiState.find((host) => host.ip === e.target.value);
                                             setSelectedHost(selected || null);
-                                            setFormData({ ...formData, deploy_host: e.target.value });
+                                            setFormData({ ...formData, deploy_host: e.target.value as string });
                                         }}
                                     >
-                                        <option value="">请选择宿主机</option>
+                                        <MenuItem value="">
+                                            <em>请选择宿主机</em>
+                                        </MenuItem>
                                         {esxiState.map((host, index) => (
-                                            <option key={index} value={host.ip}>
+                                            <MenuItem key={index} value={host.ip}>
                                                 {host.ip}
-                                            </option>
+                                            </MenuItem>
                                         ))}
-                                    </Form.Control>
-                                </Form.Group>
+                                    </Select>
+                                </FormControl>
                             )}
                             {selectedHost && (
-                                <div>
-                                    <ProgressBar
-                                        now={(selectedHost.cpuUsage / selectedHost.cpuTotal) * 100}
-                                        label={`CPU: ${(selectedHost.cpuUsage / selectedHost.cpuTotal * 100).toFixed(2)}%`}
-                                        className="mb-2"
+                                <Box sx={{ my: 2 }}>
+                                    <Typography variant="body2" gutterBottom>
+                                        CPU: {(selectedHost.cpuUsage / selectedHost.cpuTotal * 100).toFixed(2)}%
+                                    </Typography>
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={(selectedHost.cpuUsage / selectedHost.cpuTotal) * 100}
+                                        sx={{ mb: 1 }}
                                     />
-                                    <ProgressBar
-                                        now={(selectedHost.memUsage / selectedHost.memTotal) * 100}
-                                        label={`内存: ${(selectedHost.memUsage / selectedHost.memTotal * 100).toFixed(2)}%`}
-                                        className="mb-2"
+                                    <Typography variant="body2" gutterBottom>
+                                        内存: {(selectedHost.memUsage / selectedHost.memTotal * 100).toFixed(2)}%
+                                    </Typography>
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={(selectedHost.memUsage / selectedHost.memTotal) * 100}
+                                        sx={{ mb: 1 }}
                                     />
-                                    <ProgressBar
-                                        now={(selectedHost.diskUsage / selectedHost.diskTotal) * 100}
-                                        label={`硬盘: ${(selectedHost.diskUsage / selectedHost.diskTotal * 100).toFixed(2)}%`}
-                                        className="mb-2"
+                                    <Typography variant="body2" gutterBottom>
+                                        硬盘: {(selectedHost.diskUsage / selectedHost.diskTotal * 100).toFixed(2)}%
+                                    </Typography>
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={(selectedHost.diskUsage / selectedHost.diskTotal) * 100}
                                     />
-                                </div>
+                                </Box>
                             )}
-                        </Form>
+                        </>
                     )}
                     {currentStep === 3 && (
                         <div>
                             <h5>{formData.app_name} {formData.app_version} 版本信息</h5>
-                            <Table striped bordered hover>
-                                <thead>
-                                <tr>
-                                    <th>组件名称</th>
-                                    <th>版本号</th>
-                                    <th>提交记录</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {Object.keys(projectVersion.data).length > 0 && Object.keys(projectVersion.data).map((key) => (
-                                    <tr key={key}>
-                                        <td>{key.split('@')[0]}</td>
-                                        <td>{key.split('@')[1]}</td>
-                                        <td>
-                                            <Form.Control
-                                                as="select"
-                                                data-component-select={key}
-                                                value={formData.projects[key] || ''}
-                                                onChange={(e) => setFormData({ ...formData, projects: { ...formData.projects, [key]: e.target.value } })}
-                                            >
-                                                <option value="">请选择提交记录</option>
-                                                {Object.keys(projectVersion.data[key]).map((commitId) => (
-                                                    <option key={commitId} value={commitId}>
-                                                        {projectVersion.data[key][commitId]}
-                                                    </option>
-                                                ))}
-                                            </Form.Control>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>组件名称</TableCell>
+                                        <TableCell>版本号</TableCell>
+                                        <TableCell>提交记录</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {Object.keys(projectVersion.data).length > 0 && Object.keys(projectVersion.data).map((key) => (
+                                        <TableRow key={key}>
+                                            <TableCell>{key.split('@')[0]}</TableCell>
+                                            <TableCell>{key.split('@')[1]}</TableCell>
+                                            <TableCell>
+                                                <FormControl fullWidth size="small">
+                                                    <Select
+                                                        data-component-select={key}
+                                                        value={formData.projects[key] || ''}
+                                                        onChange={(e) => setFormData({ ...formData, projects: { ...formData.projects, [key]: e.target.value as string } })}
+                                                    >
+                                                        <MenuItem value="">
+                                                            <em>请选择提交记录</em>
+                                                        </MenuItem>
+                                                        {Object.keys(projectVersion.data[key]).map((commitId) => (
+                                                            <MenuItem key={commitId} value={commitId}>
+                                                                {projectVersion.data[key][commitId]}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
                             </Table>
                             <div>
                                 <label className={styles.vmToggle} >全新构建：
@@ -415,26 +465,27 @@ const BuildPage: React.FC = () => {
                             </div>
                         </div>
                     )}
-                    <div className="d-flex justify-content-between mt-3">
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
                         <Button
-                            variant="secondary"
+                            variant="outlined"
                             onClick={handlePreviousStep}
                             disabled={currentStep === 1}
                         >
                             上一步
                         </Button>
                         {currentStep < 3 ? (
-                            <Button variant="primary" onClick={handleNextStep}>
+                            <Button variant="contained" onClick={handleNextStep}>
                                 下一步
                             </Button>
                         ) : (
                             <>
                                 <Button
-                                    variant="success"
+                                    variant="contained"
+                                    color="success"
                                     onClick={handleFormSubmit}
                                     disabled={isLoading}
                                 >
-                                    {isLoading ? <Spinner animation="border" size="sm" /> : '验证构建'}
+                                    {isLoading ? <CircularProgress size={24} /> : '验证构建'}
                                 </Button>
                                 {/*<Button*/}
                                 {/*    variant="danger"*/}
@@ -445,10 +496,10 @@ const BuildPage: React.FC = () => {
                                 {/*</Button>*/}
                             </>
                         )}
-                    </div>
-                </Card.Body>
+                    </Box>
+                </CardContent>
             </Card>
-        </div>
+        </Box>
     );
 };
 
