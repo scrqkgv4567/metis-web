@@ -1,8 +1,17 @@
 'use client';
 import React, { useState, Suspense, lazy, useEffect } from 'react';
-import { Spinner } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './index.css';
+import {
+  Box,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  AppBar,
+  Toolbar,
+  Typography,
+  CircularProgress,
+} from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 
 const BuildPage = lazy(() => import('./build/page'));
@@ -34,47 +43,54 @@ const HomePage: React.FC = () => {
     };
 
     return (
-        <div className="app-container">
-            <div className="sidebar">
-                <div className="logo">
-                    <h2>Metis</h2>
-                </div>
-                <nav>
-                    <ul>
-                        <li
-                            className={activePage === 'build' ? 'active' : ''}
-                            onClick={() => setActivePage('build')}
-                        >
-                            构建
-                        </li>
-                        <li
-                            className={activePage === 'history' ? 'active' : ''}
-                            onClick={() => setActivePage('history')}
-                        >
-                            历史
-                        </li>
-                        <li
-                            className={activePage === 'vm' ? 'active' : ''}
-                            onClick={() => setActivePage('vm')}
-                        >
-                            虚拟机
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-
-            <div className="content">
+        <Box sx={{ display: 'flex' }}>
+            <AppBar position="fixed">
+                <Toolbar>
+                    <Typography variant="h6" noWrap component="div">
+                        Metis
+                    </Typography>
+                </Toolbar>
+            </AppBar>
+            <Drawer
+                variant="permanent"
+                sx={{
+                    width: 240,
+                    flexShrink: 0,
+                    [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
+                }}
+            >
+                <Toolbar />
+                <List>
+                    <ListItem disablePadding>
+                        <ListItemButton selected={activePage === 'build'} onClick={() => setActivePage('build')}>
+                            <ListItemText primary="构建" />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton selected={activePage === 'history'} onClick={() => setActivePage('history')}>
+                            <ListItemText primary="历史" />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton selected={activePage === 'vm'} onClick={() => setActivePage('vm')}>
+                            <ListItemText primary="虚拟机" />
+                        </ListItemButton>
+                    </ListItem>
+                </List>
+            </Drawer>
+            <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+                <Toolbar />
                 <Suspense
                     fallback={
-                        <div className="spinner-container">
-                            <Spinner animation="border" variant="primary" />
-                        </div>
+                        <Box className="spinner-container">
+                            <CircularProgress />
+                        </Box>
                     }
                 >
                     {renderContent()}
                 </Suspense>
-            </div>
-        </div>
+            </Box>
+        </Box>
     );
 };
 
