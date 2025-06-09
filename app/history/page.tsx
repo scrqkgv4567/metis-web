@@ -1,40 +1,115 @@
-'use client';
-import React, { useEffect, useState, useMemo, useRef, Suspense } from 'react';
-import Link from 'next/link';
-import { FiLock, FiUnlock } from 'react-icons/fi';
-import {
-    Container,
-    Card,
-    Button,
-    Grid,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    Badge,
-    CircularProgress,
-    Box,
-} from '@mui/material';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import './history.css';
+import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
+
+// --- Reusable UI Helper Components ---
+
+// SVG Icons (existing)
+const FiLock = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>;
+const FiUnlock = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>;
+const FiChevronDown = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"></polyline></svg>;
+const FiPackage = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>;
+const FiTag = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>;
+const FiEye = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>;
+// --- NEW --- Close Icon for Modal
+const FiX = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+
+
+// Icon for form fields (existing)
+const FormIcon = ({ children }) => (
+    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+        {children}
+    </div>
+);
+
+// Custom styled select input (existing)
+const CustomSelect = ({ id, value, onChange, options, icon, disabled = false }) => (
+    <div className="relative">
+        {icon && <FormIcon>{icon}</FormIcon>}
+        <select
+            id={id}
+            value={value}
+            onChange={onChange}
+            disabled={disabled}
+            className={`w-full py-3 pr-10 text-gray-300 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all appearance-none ${icon ? 'pl-10' : 'pl-4'} disabled:bg-slate-800/50 disabled:cursor-not-allowed`}
+        >
+            {options.map(option => (
+                <option key={option.value} value={option.value} disabled={option.disabled}>
+                    {option.label}
+                </option>
+            ))}
+        </select>
+        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <FiChevronDown className="w-5 h-5 text-gray-500" />
+        </div>
+    </div>
+);
+
+// Loading Spinner (existing)
+const Spinner = ({ size = 'h-5 w-5' }) => (
+    <svg className={`animate-spin text-white ${size}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+);
+
+// Countdown timer bar (existing)
+const CountdownBar = ({ isoName, countdowns }) => {
+    const totalDuration = 30 * 24 * 60 * 60 * 1000;
+    const timeLeft = countdowns.get(isoName) || 0;
+    const percentage = timeLeft > 0 ? (timeLeft / totalDuration) * 100 : 0;
+
+    if (timeLeft <= 0) {
+        return <div className="text-red-400 text-xs font-semibold">Expired & Ready for Cleanup</div>;
+    }
+
+    return (
+        <div>
+            <div className="text-xs text-slate-400 mb-1">
+                Expires in: {formatTime(timeLeft)}
+            </div>
+            <div className="w-full bg-slate-700 rounded-full h-1.5">
+                <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: `${percentage}%` }}></div>
+            </div>
+        </div>
+    );
+};
+
+// Status Badge (existing)
+const StatusBadge = ({ state }) => {
+    const stateStyles = {
+        STOPPED: 'bg-gray-500 text-white',
+        RUNNING: 'bg-blue-500 text-white animate-pulse',
+        DELETE: 'bg-red-700 text-white',
+        SUCCESS: 'bg-green-500 text-white',
+        FAILURE: 'bg-red-500 text-white',
+        VERIFIED: 'bg-teal-500 text-white',
+        default: 'bg-yellow-500 text-white',
+    };
+    const style = stateStyles[state] || stateStyles.default;
+    return (
+        <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${style}`}>
+            {state}
+        </span>
+    );
+};
+
+
+// --- Interfaces & Utility Functions ---
 
 export function formatTime(ms: number): string {
-    if (ms <= 0) {
-        return '00:00:00';
-    }
+    if (ms <= 0) return '00:00:00';
     let seconds = Math.floor(ms / 1000);
     let minutes = Math.floor(seconds / 60);
     let hours = Math.floor(minutes / 60);
-
-    seconds = seconds % 60;
+    const days = Math.floor(hours / 24);
+    
+    hours = hours % 24;
     minutes = minutes % 60;
+    seconds = seconds % 60;
 
-    const hoursStr = hours.toString().padStart(2, '0');
-    const minutesStr = minutes.toString().padStart(2, '0');
-    const secondsStr = seconds.toString().padStart(2, '0');
-
-    return `${hoursStr}:${minutesStr}:${secondsStr}`;
+    if (days > 0) {
+        return `${days}d ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m`;
+    }
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 interface HistoryItem {
@@ -51,26 +126,110 @@ interface HistoryItem {
     state: string;
 }
 
+// --- NEW --- Interface for the build details from the new endpoint
+interface BuildDetails {
+    deploy_id: string;
+    step: string;
+    state: string;
+    task_id: string;
+}
+
+// --- NEW --- Details Modal Component
+const DetailsModal = ({ isOpen, onClose, item, details, isLoading }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
+            <div className="bg-slate-800 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-700 transform transition-all"
+                 onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside
+            >
+                <div className="flex justify-between items-center p-5 border-b border-slate-700">
+                    <h2 className="text-xl font-bold text-sky-400">Build Details</h2>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                        <FiX size={24} />
+                    </button>
+                </div>
+                
+                <div className="p-6 max-h-[70vh] overflow-y-auto">
+                    {isLoading ? (
+                        <div className="flex justify-center items-center h-48">
+                            <Spinner size="h-10 w-10" />
+                        </div>
+                    ) : item && details ? (
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="font-semibold text-lg text-white mb-3" title={item.iso_name}>{item.iso_name}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Project:</strong> {item.app_name}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Version:</strong> {item.app_version}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Host:</strong> {item.deploy_host} ({item.ip})</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Build State:</strong> <StatusBadge state={item.state} /></p>
+                                </div>
+                            </div>
+                            <div className="border-t border-slate-700 pt-4">
+                                <h3 className="font-semibold text-lg text-white mb-3">Task Information</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Deploy ID:</strong> {details.deploy_id}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Task ID:</strong> {details.task_id}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Current Step:</strong> {details.step}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Task State:</strong> {details.state}</p>
+                                </div>
+                            </div>
+                             <div className="border-t border-slate-700 pt-4">
+                                <h3 className="font-semibold text-lg text-white mb-3">Timestamps</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Started:</strong> {new Date(item.start_build_time).toLocaleString()}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Finished:</strong> {item.end_build_time ? new Date(item.end_build_time).toLocaleString() : 'N/A'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                         <div className="text-center py-10">
+                            <h3 className="text-xl text-slate-300">Could not load build details.</h3>
+                            <p className="text-slate-500 mt-2">Please try again later.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// --- Main Page Component ---
+
 const HistoryPageContent: React.FC = () => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
-    // 筛选相关
+    // State management
     const [filterVersionOptions, setFilterVersionOptions] = useState<string[]>([]);
     const [selectedHistoryProject, setSelectedHistoryProject] = useState<string>('');
     const [filterVersion, setFilterVersion] = useState<string>('');
-
-    // 历史数据、锁定状态、倒计时等
     const [allHistoryData, setAllHistoryData] = useState<HistoryItem[]>([]);
     const [lockStatus, setLockStatus] = useState<Map<string, number>>(new Map());
     const [countdowns, setCountdowns] = useState<Map<string, number>>(new Map());
-
-    // 分页 & 加载控制
-    const [currentPage, setCurrentPage] = useState<number>(1);     // 当前加载的页码
-    const [hasMore, setHasMore] = useState<boolean>(true);         // 是否还有更多数据
-    const [isLoading, setIsLoading] = useState<boolean>(false);    // 是否在加载中
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [hasMore, setHasMore] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [loadingState, setLoadingState] = useState<Map<string, boolean>>(new Map());
+    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+    
+    // --- NEW --- State for the details modal
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [modalData, setModalData] = useState<{ item: HistoryItem, details: BuildDetails } | null>(null);
+    const [isModalLoading, setIsModalLoading] = useState<boolean>(false);
 
-    // 监听项目下拉选项变化时，重新获取对应可选版本
+
+    // Toast notification function
+    const showNotification = (message, type = 'success') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => {
+            setNotification({ show: false, message: '', type: 'success' });
+        }, 3000);
+    };
+
+    // --- Data Fetching Effects ---
+
     useEffect(() => {
         const controller = new AbortController();
         const fetchFilterVersion = async () => {
@@ -90,6 +249,7 @@ const HistoryPageContent: React.FC = () => {
             } catch (error) {
                 if (error instanceof Error && error.name !== 'AbortError') {
                     console.error('Failed to fetch versions:', error);
+                    showNotification('Failed to fetch versions', 'error');
                 }
             }
         };
@@ -98,387 +258,260 @@ const HistoryPageContent: React.FC = () => {
         return () => controller.abort();
     }, [selectedHistoryProject, apiBaseUrl]);
 
-    // 当项目或版本筛选变化时，重置历史数据与分页，从头加载
     useEffect(() => {
         setAllHistoryData([]);
         setCurrentPage(1);
         setHasMore(true);
     }, [selectedHistoryProject, filterVersion]);
 
-    // 根据 currentPage 的变化，向后端请求相应的历史数据并追加
     useEffect(() => {
         const fetchHistory = async () => {
+            if (!hasMore) return;
             setIsLoading(true);
             try {
-                // 使用新接口 /history?page=xxx
                 const response = await fetch(`${apiBaseUrl}/history?page=${currentPage}&project=${selectedHistoryProject}&version=${filterVersion}`);
                 const data = await response.json();
-
-                // 组装锁定和倒计时信息
-                const newLockStatus = new Map(lockStatus);
-                const newCountdowns = new Map(countdowns);
-
+                
                 if (Array.isArray(data.history) && data.history.length > 0) {
+                    setAllHistoryData((prev) => [...prev, ...data.history]);
+                    
+                    const newLockStatus = new Map(lockStatus);
+                    const newCountdowns = new Map(countdowns);
                     data.history.forEach((item: HistoryItem) => {
-                        // 设置锁定状态
                         newLockStatus.set(item.iso_name, item.is_lock);
-
-                        // 计算倒计时（30天）
-                        const endTime = item.end_build_time ? new Date(item.end_build_time) : null;
-                        if (endTime) {
-                            endTime.setDate(endTime.getDate() + 30);
-                            const now = new Date();
-                            const timeLeft = endTime > now ? endTime.getTime() - now.getTime() : 0;
+                        const itemEndTime = item.end_build_time ? new Date(item.end_build_time) : null;
+                        if (itemEndTime) {
+                            itemEndTime.setDate(itemEndTime.getDate() + 30);
+                            const timeLeft = Math.max(0, itemEndTime.getTime() - new Date().getTime());
                             newCountdowns.set(item.iso_name, timeLeft);
                         } else {
                             newCountdowns.set(item.iso_name, 0);
                         }
                     });
-
-                    // 追加到现有的 allHistoryData 中
-                    setAllHistoryData((prev) => [...prev, ...data.history]);
                     setLockStatus(newLockStatus);
                     setCountdowns(newCountdowns);
+                    
+                    if (data.history.length < 50) setHasMore(false);
 
-                    // 如果返回的数据量 < 50，说明后端没更多数据了
-                    if (data.history.length < 50) {
-                        setHasMore(false);
-                    }
                 } else {
-                    // 没有数据，直接判定为没有更多
                     setHasMore(false);
                 }
             } catch (error) {
                 console.error('Error fetching history:', error);
-                toast.error('获取历史数据失败');
+                showNotification('Failed to get history data.', 'error');
             } finally {
                 setIsLoading(false);
             }
         };
-
         fetchHistory();
-        // 注意：lockStatus 和 countdowns 也许要放进依赖里，
-        // 但如果想要保持在加载中不重复刷新的逻辑，可以只在这里简单调用。
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [apiBaseUrl, currentPage]);
+    }, [apiBaseUrl, currentPage, selectedHistoryProject, filterVersion]);
 
-    // 前端过滤逻辑
-    const filteredHistoryData = useMemo(() => {
-        return allHistoryData.filter(
-            (item) =>
-                (!selectedHistoryProject || item.app_name === selectedHistoryProject) &&
-                (!filterVersion || item.app_version === filterVersion)
-        );
-    }, [allHistoryData, selectedHistoryProject, filterVersion]);
-
-    // 每 5 秒更新一次倒计时
+    // Countdown timer update
     useEffect(() => {
         const timer = setInterval(() => {
-            setCountdowns((current) => {
+            setCountdowns(current => {
                 const updated = new Map(current);
                 updated.forEach((value, key) => {
-                    if (value > 0) {
-                        updated.set(key, value - 5000);
-                    }
+                    if (value > 0) updated.set(key, value - 1000);
                 });
                 return updated;
             });
-        }, 5000);
-
+        }, 1000);
         return () => clearInterval(timer);
     }, []);
 
-    // 切换锁定状态
     const toggleLock = async (deployId: string, currentLockStatus: number) => {
         const newLockStatus = currentLockStatus === 1 ? 0 : 1;
-        setLoadingState((prev) => new Map(prev).set(deployId, true));
+        setLoadingState(prev => new Map(prev).set(deployId, true));
         try {
             const response = await fetch(`${apiBaseUrl}/build/`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: newLockStatus === 1 ? 'lock' : 'unlock', deploy_id: deployId }),
             });
-
             if (response.ok) {
-                setLockStatus((prevStatus) => new Map(prevStatus).set(deployId, newLockStatus));
-                toast.success(`资源${newLockStatus === 1 ? '已锁定' : '已解锁'}成功`);
+                setLockStatus(prev => new Map(prev).set(deployId, newLockStatus));
+                showNotification(`Resource ${newLockStatus === 1 ? 'locked' : 'unlocked'} successfully.`, 'success');
             } else {
-                toast.error(`资源${newLockStatus === 1 ? '锁定' : '解锁'}失败`);
+                throw new Error('API response not OK');
             }
         } catch (error) {
             console.error('Error toggling lock:', error);
-            toast.error(`资源${newLockStatus === 1 ? '锁定' : '解锁'}失败`);
+            showNotification(`Failed to ${newLockStatus === 1 ? 'lock' : 'unlock'} resource.`, 'error');
         } finally {
-            setLoadingState((prev) => new Map(prev).set(deployId, false));
+            setLoadingState(prev => new Map(prev).set(deployId, false));
+        }
+    };
+    
+    // --- Event Handlers ---
+    const handleHistoryProjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedHistoryProject(e.target.value);
+        setFilterVersion('');
+    };
+
+    const handleFilterVersionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setFilterVersion(e.target.value);
+    };
+
+    const loadMoreItems = () => {
+        if (!isLoading && hasMore) {
+            setCurrentPage(prevPage => prevPage + 1);
         }
     };
 
-    // 项目下拉选择
-    const handleHistoryProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedHistoryProject(event.target.value);
-        setFilterVersion('');
-        setCurrentPage(0); // 重置页码
+    // --- NEW --- Handler for opening the details modal and fetching data
+    const handleViewDetails = async (item: HistoryItem) => {
+        setIsModalOpen(true);
+        setIsModalLoading(true);
+        setModalData(null); // Clear previous data
+        
+        try {
+            const response = await fetch(`${apiBaseUrl}/build/${item.iso_name}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch build details');
+            }
+            const details: BuildDetails = await response.json();
+            setModalData({ item, details });
+        } catch (error) {
+            console.error(error);
+            showNotification('Could not load build details.', 'error');
+            // Optionally close the modal on error after a delay, or let the user close it.
+            // setIsModalOpen(false);
+        } finally {
+            setIsModalLoading(false);
+        }
     };
 
+
     return (
-        <Container className="mt-4">
-            <ToastContainer />
-            <h3 className="mb-4">历史构建</h3>
+        <div className="bg-slate-900 text-white min-h-screen p-4 sm:p-6 lg:p-8 font-sans">
+            {/* --- NEW --- Render the Details Modal */}
+            <DetailsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                item={modalData?.item}
+                details={modalData?.details}
+                isLoading={isModalLoading}
+            />
 
-            {/* 顶部筛选栏 */}
-            <div style={{ position: 'sticky', top: 0, backgroundColor: '#f1f1f0', zIndex: 1000, paddingBottom: '0.5rem' }}>
-<<<<<<< HEAD
-                <Row className="mb-4">
-                    <Col md={6}>
-                        <Form.Select value={selectedHistoryProject} onChange={handleHistoryProjectChange}>
-                            <option value="">所有项目</option>
-                            <option value="waf">waf</option>
-                            <option value="omas">堡垒机</option>
-                            <option value="lams">日审</option>
-                            <option value="dsas">数审</option>
-                            <option value="cosa">二合一</option>
-                        </Form.Select>
-                    </Col>
-                    <Col md={6}>
-                        <Form.Select
-                            value={filterVersion}
-                            onChange={(e) => {
-                                setFilterVersion(e.target.value);
-                                setCurrentPage(0); // 重置页码
-                            }}
-                        >
-                            <option value="">所有版本</option>
-                            {filterVersionOptions.map((version) => (
-                                <option key={version} value={version}>
-                                    {version}
-                                </option>
-                            ))}
-                        </Form.Select>
-                    </Col>
-                </Row>
-            </div>
-
-            {/* 加载中时的提示 */}
-            {isLoading && (
-                <div className="loading-spinner-container">
-                    <Spinner animation="border" role="status">
-                        <span className="visually-hidden">加载中...</span>
-                    </Spinner>
+            {/* Notification Toast */}
+            <div className={`fixed top-5 right-5 transition-all duration-300 transform ${notification.show ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
+                <div className={`flex items-center p-4 rounded-lg shadow-lg text-white ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
+                    <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>{notification.message}</span>
                 </div>
-            )}
-
-            {/* 卡片列表 */}
-            <Row className="g-4">
-                {Array.isArray(filteredHistoryData) && filteredHistoryData.length > 0 ? (
-                    filteredHistoryData.map((historyItem, index) => (
-                        <Col md={4} key={index}>
-                            <Card className="h-100 shadow-sm">
-                                <Card.Body>
-                                    <Badge
-                                        bg={
-                                            historyItem.state === 'STOPPED'
-                                                ? 'secondary'
-                                                : historyItem.state === 'RUNNING'
-                                                    ? 'primary'
-                                                    : historyItem.state === 'DELETE'
-                                                        ? 'danger'
-                                                        : historyItem.state === 'SUCCESS'
-                                                            ? 'success'
-                                                            : historyItem.state === 'FAILURE'
-                                                                ? 'danger'
-                                                                : historyItem.state === 'VERIFIED'
-                                                                    ? 'info'
-                                                                    : 'warning'
-                                        }
-                                        className="mb-3"
-                                    >
-                                        {historyItem.state}
-                                    </Badge>
-                                    <Card.Text>
-                                        <strong>项目:</strong> {historyItem.app_name}
-                                    </Card.Text>
-                                    <Card.Text>
-                                        <strong>版本:</strong> {historyItem.app_version}
-                                    </Card.Text>
-                                    <Card.Text>
-                                        <strong>时间:</strong> {historyItem.start_build_time} ～ {historyItem.end_build_time}
-                                    </Card.Text>
-                                    <Card.Text>
-                                        <strong>次数:</strong> {historyItem.ci_count}
-                                    </Card.Text>
-                                    <Card.Text>
-                                        <strong>宿主机IP:</strong> {historyItem.deploy_host}
-                                    </Card.Text>
-                                    <Card.Text>
-                                        <strong>IP:</strong> {historyItem.ip}
-                                    </Card.Text>
-                                    {/* 如需显示剩余时间，可以取消注释 */}
-                                    {/* <Card.Text>
-                    <strong>剩余时间:</strong> {formatTime(countdowns.get(historyItem.iso_name) ?? 0)}
-                  </Card.Text> */}
-                                    <Link href={`/task?deploy_id=${historyItem.iso_name?.split('-')[2]}`} passHref>
-                                        <Button variant="link" className="p-0">
-                                            查看详情
-                                        </Button>
-                                    </Link>
-                                    {(historyItem.state === 'SUCCESS' || historyItem.state === 'VERIFIED') &&
-                                        historyItem.deploy_host !== '127.0.0.1' && (
-                                            <Button
-                                                variant="outline-secondary"
-                                                onClick={() =>
-                                                    toggleLock(historyItem.iso_name, lockStatus.get(historyItem.iso_name) ?? 0)
-=======
-                <Grid container spacing={2} className="mb-4">
-                    <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                            <InputLabel id="history-project-label">项目</InputLabel>
-                            <Select
-                                labelId="history-project-label"
-                                value={selectedHistoryProject}
-                                label="项目"
-                                onChange={handleHistoryProjectChange}
-                            >
-                                <MenuItem value="">所有项目</MenuItem>
-                                <MenuItem value="waf">waf</MenuItem>
-                                <MenuItem value="omas">堡垒机</MenuItem>
-                                <MenuItem value="lams">日审</MenuItem>
-                                <MenuItem value="dsas">数审</MenuItem>
-                                <MenuItem value="cosa">二合一</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                            <InputLabel id="history-version-label">版本</InputLabel>
-                            <Select
-                                labelId="history-version-label"
-                                value={filterVersion}
-                                label="版本"
-                                onChange={(e) => { setFilterVersion(e.target.value as string); setCurrentPage(1); }}
-                            >
-                                <MenuItem value="">所有版本</MenuItem>
-                                {filterVersionOptions.map((version) => (
-                                    <MenuItem key={version} value={version}>{version}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                </Grid>
             </div>
-            {isLoading ? (
-                <Box className="loading-spinner-container">
-                    <CircularProgress />
-                </Box>
-            ) : (
-                <Grid container spacing={4}>
-                    {Array.isArray(paginatedData) && paginatedData.length > 0 ? (
-                        <>
-                            {paginatedData.map((historyItem, index) => (
-                                <Grid item xs={12} md={4} key={index} className={index >= paginatedData.length - 3 && !showMore ? 'opacity-50' : ''}>
-                                    <Card className="h-100 shadow-sm">
-                                        <CardContent>
-                                            <Badge
-                                                color={
-                                                    historyItem['state'] === 'STOPPED'
-                                                        ? 'secondary'
-                                                        : historyItem['state'] === 'RUNNING'
-                                                            ? 'primary'
-                                                            : historyItem['state'] === 'DELETE'
-                                                                ? 'error'
-                                                                : historyItem['state'] === 'SUCCESS'
-                                                                    ? 'success'
-                                                                    : historyItem['state'] === 'FAILURE'
-                                                                        ? 'error'
-                                                                        : historyItem['state'] === 'VERIFIED'
-                                                                            ? 'info'
-                                                                            : 'warning'
->>>>>>> d878dbf2cb03cd9b1a235ee98afcb19a73944d38
-                                                }
-                                                className="float-end"
-                                                disabled={loadingState.get(historyItem.iso_name)}
-                                            >
-<<<<<<< HEAD
-                                                {loadingState.get(historyItem.iso_name) ? (
-                                                    <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                                                ) : lockStatus.get(historyItem.iso_name) === 1 ? (
-                                                    <FiLock />
-                                                ) : (
-                                                    <FiUnlock />
-                                                )}
-                                            </Button>
-                                        )}
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    ))
-                ) : (
-                    <div>暂无历史数据</div>
-                )}
-            </Row>
 
-            {/* 如果还有更多数据，就显示“展示更多”按钮 */}
-            {hasMore && !isLoading && (
-                <Button
-                    variant="link"
-                    className="mx-auto d-block mt-4 animate__animated animate__pulse animate__infinite"
-                    onClick={() => setCurrentPage((prevPage) => prevPage + 1)}
-                >
-                    展示更多
-                </Button>
-=======
-                                                {historyItem['state']}
-                                            </Badge>
-                                            <Typography variant="body2"><strong>项目:</strong> {historyItem['app_name']}</Typography>
-                                            <Typography variant="body2"><strong>版本:</strong> {historyItem['app_version']}</Typography>
-                                            <Typography variant="body2"><strong>时间:</strong> {historyItem['start_build_time']} ～ {historyItem['end_build_time']}</Typography>
-                                            <Typography variant="body2"><strong>次数:</strong> {historyItem['ci_count']}</Typography>
-                                            <Typography variant="body2"><strong>宿主机IP:</strong> {historyItem['deploy_host']}</Typography>
-                                            <Typography variant="body2"><strong>IP:</strong> {historyItem['ip']}</Typography>
-                                            {/*<Card.Text>*/}
-                                            {/*    <strong>剩余时间:</strong> {formatTime(countdowns.get(historyItem['iso_name']) ?? 0)}*/}
-                                            {/*</Card.Text>*/}
-                                            <Link href={`/task?deploy_id=${historyItem['iso_name']?.split('-')[2]}`} passHref>
-                                                <Button variant="text" sx={{ p: 0 }}>查看详情</Button>
-                                            </Link>
-                                            {(historyItem['state'] === 'SUCCESS' || historyItem['state'] === 'VERIFIED') &&
-                                                historyItem['deploy_host'] !== '127.0.0.1' && (
-                                                    <Button
-                                                        variant="outlined"
-                                                        onClick={() => toggleLock(historyItem['iso_name'], lockStatus.get(historyItem['iso_name']) ?? 0)}
-                                                        sx={{ float: 'right' }}
-                                                        disabled={loadingState.get(historyItem['iso_name'])}
-                                                    >
-                                                        {loadingState.get(historyItem['iso_name']) ? (
-                                                            <CircularProgress size={20} />
-                                                        ) : lockStatus.get(historyItem['iso_name']) === 1 ? <FiLock /> : <FiUnlock />}
-                                                    </Button>
-                                                )}
-                                        </CardContent>
-                                    </Card>
-                                </Grid>
-                            ))}
-                            {!showMore && filteredHistoryData.length > pageSize && (
-                                <Button
-                                    variant="link"
-                                    className="mx-auto d-block mt-4 animate__animated animate__pulse animate__infinite"
-                                    onClick={() => setCurrentPage((prevPage) => prevPage + 1)}
-                                >
-                                    展示更多
-                                </Button>
-                            )}
-                        </>
-                    ) : (
-                        <div>暂无历史数据</div>
+            <div className="max-w-7xl mx-auto">
+                <header className="mb-8">
+                    <h1 className="text-3xl font-bold text-sky-400">Build History</h1>
+                    <p className="text-slate-400 mt-1">Review, manage, and track your past builds.</p>
+                </header>
+
+                {/* Filter Bar */}
+                <div className="sticky top-0 z-10 bg-slate-900/80 backdrop-blur-sm pt-4 pb-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <CustomSelect
+                            id="history-project"
+                            value={selectedHistoryProject}
+                            onChange={handleHistoryProjectChange}
+                            options={[
+                                { value: '', label: 'All Projects' },
+                                { value: 'waf', label: 'WAF' }, { value: 'omas', label: 'Bastion Host' },
+                                { value: 'lams', label: 'Log Audit' }, { value: 'dsas', label: 'Data Audit' },
+                                { value: 'cosa', label: '2-in-1 Gateway' },
+                            ]}
+                            icon={<FiPackage />}
+                        />
+                        <CustomSelect
+                            id="history-version"
+                            value={filterVersion}
+                            onChange={handleFilterVersionChange}
+                            disabled={!selectedHistoryProject || filterVersionOptions.length === 0}
+                            options={[
+                                { value: '', label: 'All Versions' },
+                                ...filterVersionOptions.map(v => ({ value: v, label: v }))
+                            ]}
+                            icon={<FiTag />}
+                        />
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                {isLoading && currentPage === 1 && (
+                    <div className="flex justify-center items-center h-64">
+                        <Spinner size="h-10 w-10" />
+                    </div>
+                )}
+                
+                {!isLoading && allHistoryData.length === 0 && (
+                     <div className="text-center py-16">
+                         <h3 className="text-xl text-slate-300">No Build Records Found</h3>
+                         <p className="text-slate-500 mt-2">Try adjusting your filters or create a new build.</p>
+                     </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {allHistoryData.map((item) => (
+                        <div key={item.iso_name} className="bg-slate-800/50 rounded-2xl shadow-lg border border-slate-700 flex flex-col justify-between transition-all duration-300 hover:shadow-sky-500/20 hover:-translate-y-1">
+                           <div className="p-5">
+                                 <div className="flex justify-between items-center mb-4">
+                                     <StatusBadge state={item.state} />
+                                     {loadingState.get(item.iso_name) ? <Spinner size="h-4 w-4" /> :
+                                         <button onClick={() => toggleLock(item.iso_name, lockStatus.get(item.iso_name) || 0)} className="text-slate-400 hover:text-white transition-colors">
+                                             {lockStatus.get(item.iso_name) === 1 ? <FiLock /> : <FiUnlock />}
+                                         </button>
+                                     }
+                                 </div>
+                                 <h3 className="font-bold text-lg text-white truncate mb-1" title={item.iso_name}>{item.iso_name}</h3>
+                                 <p className="text-sm text-sky-400 font-medium mb-4">{item.app_name} v{item.app_version}</p>
+                                 <div className="text-xs text-slate-400 space-y-2">
+                                     <p><strong>Host:</strong> {item.deploy_host} ({item.ip})</p>
+                                     <p><strong>Started:</strong> {new Date(item.start_build_time).toLocaleString()}</p>
+                                     <p><strong>Finished:</strong> {item.end_build_time ? new Date(item.end_build_time).toLocaleString() : 'N/A'}</p>
+                                 </div>
+                            </div>
+                           <div className="bg-slate-800 p-4 rounded-b-2xl space-y-3">
+                                {lockStatus.get(item.iso_name) === 0 && <CountdownBar isoName={item.iso_name} countdowns={countdowns} />}
+                                <div className="flex justify-end items-center space-x-2">
+                                     {/* --- MODIFIED --- Changed from <a> to <button> to trigger modal */}
+                                    <button onClick={() => handleViewDetails(item)} className="text-sm py-2 px-3 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors flex items-center">
+                                       <FiEye /> <span className="ml-2">Details</span>
+                                    </button>
+                                    <button
+                                        disabled={lockStatus.get(item.iso_name) === 1 || loadingState.get(item.iso_name)}
+                                        className="text-sm py-2 px-3 rounded-md bg-red-600/50 hover:bg-red-600 text-red-300 hover:text-white transition-colors disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                           </div>
+                        </div>
+                    ))}
+                </div>
+                
+                {/* Load More Button */}
+                <div className="mt-12 text-center">
+                    {hasMore && !isLoading && (
+                        <button onClick={loadMoreItems} className="py-2 px-6 rounded-lg bg-sky-600 hover:bg-sky-500 font-semibold transition-all">
+                            Load More
+                        </button>
                     )}
-                </Grid>
->>>>>>> d878dbf2cb03cd9b1a235ee98afcb19a73944d38
-            )}
-        </Container>
+                    {isLoading && currentPage > 1 && <Spinner size="h-8 w-8" />}
+                </div>
+
+            </div>
+        </div>
     );
 };
 
-const HistoryPage: React.FC = () => (
-    <Suspense fallback={<div>Loading history details...</div>}>
+
+const HistoryPage = () => (
+    <Suspense fallback={
+        <div className="bg-slate-900 h-screen flex justify-center items-center">
+            <Spinner size="h-12 w-12" />
+        </div>
+    }>
         <HistoryPageContent />
     </Suspense>
 );
