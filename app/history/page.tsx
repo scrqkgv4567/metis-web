@@ -14,14 +14,24 @@ const FiX = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox
 
 
 // Icon for form fields (existing)
-const FormIcon = ({ children }) => (
+interface FormIconProps { children: React.ReactNode }
+const FormIcon: React.FC<FormIconProps> = ({ children }) => (
     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
         {children}
     </div>
 );
 
 // Custom styled select input (existing)
-const CustomSelect = ({ id, value, onChange, options, icon, disabled = false }) => (
+interface SelectOption { value: string; label: string; disabled?: boolean }
+interface CustomSelectProps {
+    id: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    options: SelectOption[];
+    icon?: React.ReactNode;
+    disabled?: boolean;
+}
+const CustomSelect: React.FC<CustomSelectProps> = ({ id, value, onChange, options, icon, disabled = false }) => (
     <div className="relative">
         {icon && <FormIcon>{icon}</FormIcon>}
         <select
@@ -44,7 +54,8 @@ const CustomSelect = ({ id, value, onChange, options, icon, disabled = false }) 
 );
 
 // Loading Spinner (existing)
-const Spinner = ({ size = 'h-5 w-5' }) => (
+interface SpinnerProps { size?: string }
+const Spinner: React.FC<SpinnerProps> = ({ size = 'h-5 w-5' }) => (
     <svg className={`animate-spin text-white ${size}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -52,7 +63,8 @@ const Spinner = ({ size = 'h-5 w-5' }) => (
 );
 
 // Countdown timer bar (existing)
-const CountdownBar = ({ isoName, countdowns }) => {
+interface CountdownBarProps { isoName: string; countdowns: Map<string, number> }
+const CountdownBar: React.FC<CountdownBarProps> = ({ isoName, countdowns }) => {
     const totalDuration = 30 * 24 * 60 * 60 * 1000;
     const timeLeft = countdowns.get(isoName) || 0;
     const percentage = timeLeft > 0 ? (timeLeft / totalDuration) * 100 : 0;
@@ -74,7 +86,8 @@ const CountdownBar = ({ isoName, countdowns }) => {
 };
 
 // Status Badge (existing)
-const StatusBadge = ({ state }) => {
+interface StatusBadgeProps { state: string }
+const StatusBadge: React.FC<StatusBadgeProps> = ({ state }) => {
     const stateStyles = {
         STOPPED: 'bg-gray-500 text-white',
         RUNNING: 'bg-blue-500 text-white animate-pulse',
@@ -135,13 +148,20 @@ interface BuildDetails {
 }
 
 // --- NEW --- Details Modal Component
-const DetailsModal = ({ isOpen, onClose, item, details, isLoading }) => {
+interface DetailsModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    item?: HistoryItem;
+    details?: BuildDetails;
+    isLoading: boolean;
+}
+const DetailsModal: React.FC<DetailsModalProps> = ({ isOpen, onClose, item, details, isLoading }) => {
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
             <div className="bg-slate-800 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-700 transform transition-all"
-                 onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside
+                 onClick={(e: React.MouseEvent) => e.stopPropagation()} // Prevents closing when clicking inside
             >
                 <div className="flex justify-between items-center p-5 border-b border-slate-700">
                     <h2 className="text-xl font-bold text-sky-400">Build Details</h2>

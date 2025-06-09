@@ -4,14 +4,24 @@ import React, { useState, useEffect, useRef } from 'react';
 // --- Helper Components for a cleaner UI ---
 
 // Icon for form fields
-const FormIcon = ({ children }) => (
+interface FormIconProps { children: React.ReactNode }
+const FormIcon: React.FC<FormIconProps> = ({ children }) => (
     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
         {children}
     </div>
 );
 
 // Custom styled select input
-const CustomSelect = ({ id, value, onChange, options, icon, disabled = false }) => (
+interface SelectOption { value: string; label: string; disabled?: boolean }
+interface CustomSelectProps {
+    id: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    options: SelectOption[];
+    icon?: React.ReactNode;
+    disabled?: boolean;
+}
+const CustomSelect: React.FC<CustomSelectProps> = ({ id, value, onChange, options, icon, disabled = false }) => (
     <div className="relative">
         {icon && <FormIcon>{icon}</FormIcon>}
         <select
@@ -36,7 +46,12 @@ const CustomSelect = ({ id, value, onChange, options, icon, disabled = false }) 
 );
 
 // Custom animated toggle switch
-const CustomToggle = ({ label, checked, onChange }) => (
+interface CustomToggleProps {
+    label: string;
+    checked: boolean;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+const CustomToggle: React.FC<CustomToggleProps> = ({ label, checked, onChange }) => (
     <label className="flex items-center justify-between cursor-pointer">
         <span className="text-lg font-medium text-slate-300">{label}</span>
         <div className="relative">
@@ -49,7 +64,13 @@ const CustomToggle = ({ label, checked, onChange }) => (
 );
 
 // Resource Meter component (replaces ProgressBar)
-const ResourceMeter = ({ label, value, total, colorClass }) => {
+interface ResourceMeterProps {
+    label: string;
+    value: number;
+    total: number;
+    colorClass: string;
+}
+const ResourceMeter: React.FC<ResourceMeterProps> = ({ label, value, total, colorClass }) => {
     const percentage = total > 0 ? (value / total) * 100 : 0;
     return (
         <div>
@@ -65,7 +86,7 @@ const ResourceMeter = ({ label, value, total, colorClass }) => {
 };
 
 // Loading Spinner
-const Spinner = () => (
+const Spinner: React.FC = () => (
     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -92,7 +113,7 @@ interface EsxiState {
     cpuUsage: number;
 }
 
-interface selectedHost {
+interface SelectedHost {
     ip: string;
     diskTotal: number;
     diskUsage: number;
@@ -128,7 +149,7 @@ const BuildPage = () => {
     const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
     const [appVersionOptions, setAppVersionOptions] = useState<string[]>([]);
     const [esxiState, setEsxiState] = useState<EsxiState[]>([]);
-    const [selectedHost, setSelectedHost] = useState<selectedHost | null>(null);
+    const [selectedHost, setSelectedHost] = useState<SelectedHost | null>(null);
     const [projectVersion, setProjectVersion] = useState<ProjectVersion>({ data: {} });
     const [isNew, setIsNew] = useState(false);
     const [formData, setFormData] = useState({
@@ -264,7 +285,7 @@ const BuildPage = () => {
         setIsNew(checked);
     };
 
-    const handleHostChange = (e) => {
+    const handleHostChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const hostIp = e.target.value;
         const selected = esxiState.find((host) => host.ip === hostIp);
         setSelectedHost(selected || null);
@@ -311,7 +332,7 @@ const BuildPage = () => {
                         <div>
                             <label htmlFor="app_name" className="block text-sm font-medium text-slate-400 mb-2">项目</label>
                             <CustomSelect id="app_name" value={formData.app_name}
-                                onChange={(e) => setFormData({ ...formData, app_name: e.target.value, app_version: '' })}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, app_name: e.target.value, app_version: '' })}
                                 options={appNameOptions}
                                 icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 16c1.642 0 3.12-.495 4.305-1.325a.5.5 0 01.39-.028l4.49 1.283a.5.5 0 00.615-.558V5.513a.5.5 0 00-.615-.558L13.195 6.24a.5.5 0 01-.39-.028A8.001 8.001 0 009 4.804z"/></svg>}
                             />
@@ -319,7 +340,7 @@ const BuildPage = () => {
                         <div>
                            <label htmlFor="app_version" className="block text-sm font-medium text-slate-400 mb-2">版本</label>
                            <CustomSelect id="app_version" value={formData.app_version}
-                                onChange={(e) => setFormData({ ...formData, app_version: e.target.value })}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, app_version: e.target.value })}
                                 options={[
                                     { value: '', label: 'Please select a version', disabled: true },
                                     ...appVersionOptions.map(v => ({ value: v, label: v }))
@@ -331,7 +352,7 @@ const BuildPage = () => {
                         <div>
                             <label htmlFor="ware_version" className="block text-sm font-medium text-slate-400 mb-2">型号</label>
                             <CustomSelect id="ware_version" value={formData.ware_version}
-                                onChange={(e) => setFormData({ ...formData, ware_version: e.target.value })}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, ware_version: e.target.value })}
                                 options={wareVersionOptions}
                                 icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>}
                            />
@@ -340,7 +361,7 @@ const BuildPage = () => {
                              <div className="animate-fade-in">
                                 <label htmlFor="cloud_platform" className="block text-sm font-medium text-slate-400 mb-2">Platform</label>
                                 <CustomSelect id="cloud_platform" value={formData.cloud_platform}
-                                    onChange={(e) => setFormData({ ...formData, cloud_platform: e.target.value })}
+                                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, cloud_platform: e.target.value })}
                                     options={cloudPlatformOptions}
                                     icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z" /></svg>}
                                 />
@@ -349,7 +370,7 @@ const BuildPage = () => {
                         <div>
                             <label htmlFor="channel" className="block text-sm font-medium text-slate-400 mb-2">渠道</label>
                             <CustomSelect id="channel" value={formData.channel}
-                                onChange={(e) => setFormData({ ...formData, channel: e.target.value })}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, channel: e.target.value })}
                                 options={channelOptions}
                                 icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C3.732 4.943 9.522 3 10 3s6.268 1.943 9.542 7c-3.274 5.057-9.062 7-9.542 7S3.732 15.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>}
                             />
@@ -362,9 +383,9 @@ const BuildPage = () => {
                         <div>
                             <label className="block text-sm font-medium text-slate-400 mb-2">Hardware Configuration</label>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                               <CustomSelect id="cpu" value={formData.cpu} onChange={(e) => setFormData({ ...formData, cpu: e.target.value })} options={cpuOptions} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm2 0h10v10H5V5z" clipRule="evenodd" /><path d="M7 7h2v2H7V7zm4 0h2v2h-2V7zm-4 4h2v2H7v-2zm4 0h2v2h-2v-2z" /></svg>} />
-                               <CustomSelect id="memory" value={formData.memory} onChange={(e) => setFormData({ ...formData, memory: e.target.value })} options={memoryOptions} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm1 2a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 4a1 1 0 100 2h6a1 1 0 100-2H6z" clipRule="evenodd" /></svg>} />
-                               <CustomSelect id="disk" value={formData.disk} onChange={(e) => setFormData({ ...formData, disk: e.target.value })} options={diskOptions} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clipRule="evenodd" /></svg>} />
+                               <CustomSelect id="cpu" value={formData.cpu} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, cpu: e.target.value })} options={cpuOptions} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm2 0h10v10H5V5z" clipRule="evenodd" /><path d="M7 7h2v2H7V7zm4 0h2v2h-2V7zm-4 4h2v2H7v-2zm4 0h2v2h-2v-2z" /></svg>} />
+                               <CustomSelect id="memory" value={formData.memory} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, memory: e.target.value })} options={memoryOptions} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm1 2a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 4a1 1 0 100 2h6a1 1 0 100-2H6z" clipRule="evenodd" /></svg>} />
+                               <CustomSelect id="disk" value={formData.disk} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, disk: e.target.value })} options={diskOptions} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clipRule="evenodd" /></svg>} />
                             </div>
                         </div>
                         {(formData.ware_version === 'soft' || formData.ware_version === 'soft_cloud') && (
@@ -413,7 +434,7 @@ const BuildPage = () => {
                                                     <CustomSelect
                                                         id={`project-${key}`}
                                                         value={formData.projects[key] || ''}
-                                                        onChange={(e) => setFormData({ ...formData, projects: { ...formData.projects, [key]: e.target.value } })}
+                                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, projects: { ...formData.projects, [key]: e.target.value } })}
                                                         options={[
                                                           { value: '', label: 'Select a commit' },
                                                           ...Object.entries(projectVersion.data[key]).map(([commitId, commitMsg]) => ({ value: commitId, label: commitMsg }))
