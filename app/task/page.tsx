@@ -1,7 +1,7 @@
 'use client'
 import React, { FormEvent, useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { CircularProgress, Container, Typography, Button, Box, TextField, Paper } from '@mui/material';
+import { CircularProgress, Container, Typography, Button, Box, TextField, Paper, LinearProgress } from '@mui/material';
 import { styled } from '@mui/system';
 
 interface TaskState {
@@ -16,6 +16,16 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
     maxWidth: '500px',
     margin: '0 auto',
 }));
+
+// Define the ordered steps
+const steps = [
+    { key: 'preparation_task', label: '预发布任务' },
+    { key: 'build_task', label: '生产任务' },
+    { key: 'init_sql', label: '初始化 SQL' },
+    { key: 'check_task_file', label: '检查文件完整性' },
+    { key: 'package_task', label: 'ISO镜像打包' },
+    { key: 'apply_task', label: '安装系统' },
+];
 
 const TaskPageContent  = () => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -33,6 +43,9 @@ const TaskPageContent  = () => {
             setIsLoading(true);
             try {
                 const response = await fetch(`${apiBaseUrl}/build/${deploy_id}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 const translatedState = translateTaskState({state: data.state});
                 const translatedStep = translateTaskStep({step: data.step});
@@ -45,7 +58,9 @@ const TaskPageContent  = () => {
             }
         };
 
-        doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
+        if (deploy_id) {
+            doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
+        }
     }, [deploy_id, apiBaseUrl, triggerOnsubmit]);
 
     function translateTaskStep({step}: { step: any }) {
@@ -56,12 +71,12 @@ const TaskPageContent  = () => {
                 return '生产任务';
             case 'init_sql':
                 return '初始化 SQL';
-            case 'apply_task':
-                return '安装系统';
             case 'check_task_file':
                 return '检查文件完整性';
             case 'package_task':
                 return 'ISO镜像打包';
+            case 'apply_task':
+                return '安装系统';
             default:
                 return step; // Return original step if no translation found
         }
@@ -92,6 +107,22 @@ const TaskPageContent  = () => {
         }
     }
 
+    const getCurrentStepIndex = () => {
+        return steps.findIndex(step => step.label === taskState.step) + 1; // +1 for 1-based index
+    }
+
+    const getProgress = () => {
+        const currentStep = getCurrentStepIndex();
+        // 保留两位小数
+        console.log('currentStep:', currentStep);
+        if (taskState.state === '正在运行' || taskState.state === '失败' || taskState.state === '已停止'){
+            return ((currentStep / steps.length) * 100 -1).toFixed(2);
+        }else{
+            return ((currentStep / steps.length) * 100).toFixed(2);
+        }
+
+    }
+
     const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setIsLoading(true);
@@ -102,6 +133,9 @@ const TaskPageContent  = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({action: action, deploy_id: taskState.deploy_id}),
             });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const data = await response.json();
             console.log('Response:', data);
             setTriggerOnsubmit(!triggerOnsubmit);
@@ -124,25 +158,31 @@ const TaskPageContent  = () => {
                     <TextField
                         variant="outlined"
                         fullWidth
-                        slotProps={{ input: { readOnly: true } }}
+                        InputProps={{ readOnly: true }}
                         value={taskState.deploy_id || ''}
                         sx={{ mb: 3 }}
                     />
 
                     <Typography variant="h6" gutterBottom>当前任务:</Typography>
-                    <TextField
-                        variant="outlined"
-                        fullWidth
-                        slotProps={{ input: { readOnly: true } }}
-                        value={taskState.step || ''}
-                        sx={{ mb: 3 }}
-                    />
+                    <Box sx={{ mb: 3 }}>
+                        <Typography variant="body1" gutterBottom>
+                            {taskState.step || '加载中...'}
+                        </Typography>
+                        <LinearProgress
+                            variant="determinate"
+                            value={parseFloat(getProgress())}
+                            sx={{ height: 10, borderRadius: 5 }}
+                        />
+                        <Typography variant="caption" display="block" align="right">
+                            {getProgress()}%
+                        </Typography>
+                    </Box>
 
                     <Typography variant="h6" gutterBottom>构建状态:</Typography>
                     <TextField
                         variant="outlined"
                         fullWidth
-                        slotProps={{ input: { readOnly: true } }}
+                        InputProps={{ readOnly: true }}
                         value={taskState.state || ''}
                         sx={{ mb: 3 }}
                     />
@@ -170,7 +210,7 @@ const TaskPageContent  = () => {
                                 {isLoading ? <CircularProgress size={24} /> : '删除'}
                             </Button>
                         )}
-                        {taskState.step === '安装系统' &&(taskState.state === '已完成' || taskState.state === '锁定' || taskState.state === '未锁定' )  && (
+                        {taskState.step === '安装系统' && (taskState.state === '已完成' || taskState.state === '锁定' || taskState.state === '未锁定' )  && (
                             <Button
                                 type="submit"
                                 variant="contained"
@@ -188,8 +228,8 @@ const TaskPageContent  = () => {
                             variant="contained"
                             color="secondary"
                             onClick={onHistoryClick}
-                        >返回首页
-
+                        >
+                            返回首页
                         </Button>
                     </Box>
                 </form>

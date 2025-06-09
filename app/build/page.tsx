@@ -148,7 +148,9 @@ const BuildPage: React.FC = () => {
     }, [formData.app_name, formData.app_version, apiBaseUrl]);
 
     const handleNextStep = () => {
-        if (currentStep < 3) setCurrentStep(currentStep + 1);
+        if (formData.ware_version === 'hard' && currentStep === 1){
+            setCurrentStep(currentStep + 2);
+        }else if (currentStep < 3) setCurrentStep(currentStep + 1);
     };
 
     const handlePreviousStep = () => {
@@ -277,6 +279,7 @@ const BuildPage: React.FC = () => {
                                     <option value="sunyainfo">上元信安</option>
                                     <option value="ruisuyun">锐速云</option>
                                     <option value="whiteboard">白板</option>
+                                    <option value="wanwangkeji">万网</option>
                                 </Form.Control>
                             </Form.Group>
                         </Form>
