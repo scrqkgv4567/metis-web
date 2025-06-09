@@ -26,7 +26,7 @@ const TaskPageContent  = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [taskState, setTaskState] = useState<TaskState>({} as TaskState);
     const [action, setAction] = useState('');
-    const [triggerOnsubmit, setTriggerOnsubmit] = useState(false);
+    const [triggerOnSubmit, setTriggerOnSubmit] = useState(false);
 
     useEffect(() => {
         const doFetchTask = async () => {
@@ -46,7 +46,7 @@ const TaskPageContent  = () => {
         };
 
         doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
-    }, [deploy_id, apiBaseUrl, triggerOnsubmit]);
+    }, [deploy_id, apiBaseUrl, triggerOnSubmit]);
 
     function translateTaskStep({step}: { step: any }) {
         switch (step) {
@@ -104,7 +104,7 @@ const TaskPageContent  = () => {
             });
             const data = await response.json();
             console.log('Response:', data);
-            setTriggerOnsubmit(!triggerOnsubmit);
+            setTriggerOnSubmit(!triggerOnSubmit);
         } catch (error) {
             console.error('Error submitting:', error);
         } finally {
