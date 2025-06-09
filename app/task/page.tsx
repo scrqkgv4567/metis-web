@@ -28,7 +28,8 @@ const steps = [
 ];
 
 const TaskPageContent  = () => {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    // Default to an empty string if the environment variable is undefined
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
     const router = useRouter();
 
     const searchParams = useSearchParams();
@@ -36,7 +37,7 @@ const TaskPageContent  = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [taskState, setTaskState] = useState<TaskState>({} as TaskState);
     const [action, setAction] = useState('');
-    const [triggerOnsubmit, setTriggerOnsubmit] = useState(false);
+    const [triggerOnSubmit, setTriggerOnSubmit] = useState(false);
 
     useEffect(() => {
         const doFetchTask = async () => {
@@ -58,10 +59,15 @@ const TaskPageContent  = () => {
             }
         };
 
+<<<<<<< HEAD
         if (deploy_id) {
             doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
         }
     }, [deploy_id, apiBaseUrl, triggerOnsubmit]);
+=======
+        doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
+    }, [deploy_id, apiBaseUrl, triggerOnSubmit]);
+>>>>>>> 9f14defa6946d92db103f42aa89c749afd52c5f3
 
     function translateTaskStep({step}: { step: any }) {
         switch (step) {
@@ -138,7 +144,7 @@ const TaskPageContent  = () => {
             }
             const data = await response.json();
             console.log('Response:', data);
-            setTriggerOnsubmit(!triggerOnsubmit);
+            setTriggerOnSubmit(!triggerOnSubmit);
         } catch (error) {
             console.error('Error submitting:', error);
         } finally {
