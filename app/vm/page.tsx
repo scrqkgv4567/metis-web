@@ -1,8 +1,17 @@
 'use client';
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { Spinner, Container, Table } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import {
+    CircularProgress,
+    Container,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody,
+    Typography,
+    Box,
+} from '@mui/material';
 import styles from './vm.module.css';
 
 interface Vm {
@@ -75,51 +84,51 @@ const VmsDashboard: React.FC = () => {
 
     return (
         <Container>
-            <h1 className="text-center my-4">测试用虚拟机资源列表</h1>
+            <Typography variant="h5" align="center" sx={{ my: 4 }}>
+                测试用虚拟机资源列表
+            </Typography>
             {notification.show && (
                 <div className={styles.notification}>
                     {notification.message}
                 </div>
             )}
             {loading ? (
-                <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
-                    <Spinner animation="border" role="status" style={{ width: '5rem', height: '5rem' }}>
-                        <span className="visually-hidden">Loading...</span>
-                    </Spinner>
-                </div>
+                <Box display="flex" justifyContent="center" alignItems="center" sx={{ height: '50vh' }}>
+                    <CircularProgress sx={{ width: '5rem', height: '5rem' }} />
+                </Box>
             ) : (
-                <Table striped bordered hover responsive className="mt-4">
-                    <thead className="thead-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>操作系统</th>
-                        <th>虚拟机IP</th>
-                        <th>虚拟机名</th>
-                        <th>宿主机</th>
-                        <th>操作</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {vms.map((vm) => (
-                        <tr key={vm.id}>
-                            <td>{vm.id}</td>
-                            <td>{vm.vm_os}</td>
-                            <td>{vm.vm_ip}</td>
-                            <td>{vm.vm_name}</td>
-                            <td>{vm.vm_host}</td>
-                            <td>
-                                <label className={styles.vmToggle}>
-                                    <input
-                                        type="checkbox"
-                                        checked={vm.vm_state === "poweredOn"}
-                                        onChange={(e) => toggleVmState(e.target.checked, vm.vm_uuid)}
-                                    />
-                                    <span></span>
-                                </label>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
+                <Table sx={{ mt: 4 }}>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>ID</TableCell>
+                            <TableCell>操作系统</TableCell>
+                            <TableCell>虚拟机IP</TableCell>
+                            <TableCell>虚拟机名</TableCell>
+                            <TableCell>宿主机</TableCell>
+                            <TableCell>操作</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {vms.map((vm) => (
+                            <TableRow key={vm.id}>
+                                <TableCell>{vm.id}</TableCell>
+                                <TableCell>{vm.vm_os}</TableCell>
+                                <TableCell>{vm.vm_ip}</TableCell>
+                                <TableCell>{vm.vm_name}</TableCell>
+                                <TableCell>{vm.vm_host}</TableCell>
+                                <TableCell>
+                                    <label className={styles.vmToggle}>
+                                        <input
+                                            type="checkbox"
+                                            checked={vm.vm_state === "poweredOn"}
+                                            onChange={(e) => toggleVmState(e.target.checked, vm.vm_uuid)}
+                                        />
+                                        <span></span>
+                                    </label>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
                 </Table>
             )}
         </Container>
