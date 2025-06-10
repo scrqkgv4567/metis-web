@@ -247,7 +247,7 @@ const BuildPage = () => {
     }, [formData.app_name, formData.app_version, apiBaseUrl]);
     
     // --- Handlers (preserved and adapted for new UI) ---
-    const showNotification = (message, type = 'success') => {
+    const showNotification = (message: string, type = 'success') => {
         setNotification({ show: true, message, type });
         setTimeout(() => {
             setNotification({ show: false, message: '', type: 'success' });
@@ -342,7 +342,7 @@ const BuildPage = () => {
                            <CustomSelect id="app_version" value={formData.app_version}
                                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, app_version: e.target.value })}
                                 options={[
-                                    { value: '', label: 'Please select a version', disabled: true },
+                                    { value: '', label: '选择版本', disabled: true },
                                     ...appVersionOptions.map(v => ({ value: v, label: v }))
                                 ]}
                                 disabled={!formData.app_name || appVersionOptions.length === 0}
@@ -381,7 +381,7 @@ const BuildPage = () => {
                 return (
                     <div className="space-y-6 animate-fade-in">
                         <div>
-                            <label className="block text-sm font-medium text-slate-400 mb-2">Hardware Configuration</label>
+                            <label className="block text-sm font-medium text-slate-400 mb-2">虚拟机配置</label>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                <CustomSelect id="cpu" value={formData.cpu} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, cpu: e.target.value })} options={cpuOptions} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm2 0h10v10H5V5z" clipRule="evenodd" /><path d="M7 7h2v2H7V7zm4 0h2v2h-2V7zm-4 4h2v2H7v-2zm4 0h2v2h-2v-2z" /></svg>} />
                                <CustomSelect id="memory" value={formData.memory} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, memory: e.target.value })} options={memoryOptions} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm1 2a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 4a1 1 0 100 2h6a1 1 0 100-2H6z" clipRule="evenodd" /></svg>} />
@@ -402,7 +402,7 @@ const BuildPage = () => {
                                 </div>
                                 {selectedHost && (
                                     <div className="p-4 bg-slate-800/50 rounded-lg space-y-4 animate-fade-in">
-                                        <h4 className="text-lg font-semibold text-sky-400">{selectedHost.ip} Resource Usage</h4>
+                                        <h4 className="text-lg font-semibold text-sky-400">{selectedHost.ip} 当前资源</h4>
                                         <ResourceMeter label="CPU" value={selectedHost.cpuUsage} total={selectedHost.cpuTotal} colorClass="bg-green-500" />
                                         <ResourceMeter label="Memory" value={selectedHost.memUsage} total={selectedHost.memTotal} colorClass="bg-sky-500" />
                                         <ResourceMeter label="Disk" value={selectedHost.diskUsage} total={selectedHost.diskTotal} colorClass="bg-amber-500" />
@@ -532,15 +532,15 @@ const BuildPage = () => {
                            <div className="mt-8 pt-6 border-t border-slate-700 flex flex-col space-y-4">
                                <div className="flex justify-between w-full">
                                    <button onClick={handlePreviousStep} disabled={currentStep === 1 || isLoading} className="w-full mr-2 text-center py-3 px-4 rounded-lg font-semibold transition-all duration-300 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed">
-                                       Previous
+                                       后退
                                    </button>
                                    {currentStep < 3 ? (
                                         <button onClick={handleNextStep} disabled={isLoading || (currentStep === 1 && !formData.app_version)} className="w-full ml-2 text-center py-3 px-4 rounded-lg font-semibold transition-all duration-300 text-white bg-sky-600 hover:bg-sky-500 disabled:bg-sky-800 disabled:text-sky-500 disabled:cursor-not-allowed">
-                                            Next
+                                            下一步
                                         </button>
                                    ) : (
                                         <button onClick={handleFormSubmit} disabled={isLoading} className="w-full ml-2 text-center py-3 px-4 rounded-lg font-semibold transition-all duration-300 text-white bg-green-600 hover:bg-green-500 disabled:bg-green-800 disabled:cursor-not-allowed flex items-center justify-center">
-                                            {isLoading ? <><Spinner /> Verifying...</> : 'Verify Build'}
+                                            {isLoading ? <><Spinner /> Verifying...</> : '开始构建'}
                                         </button>
                                    )}
                                </div>

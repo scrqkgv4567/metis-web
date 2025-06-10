@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 
 // --- Reusable UI Helper Components ---
@@ -5,13 +6,11 @@ import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 // SVG Icons (existing)
 const FiLock = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>;
 const FiUnlock = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>;
-const FiChevronDown = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"></polyline></svg>;
+const FiChevronDown: React.FC<React.SVGProps<SVGSVGElement>> = (props) => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" {...props}><polyline points="6 9 12 15 18 9"></polyline></svg>;
 const FiPackage = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>;
 const FiTag = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>;
 const FiEye = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>;
-// --- NEW --- Close Icon for Modal
-const FiX = () => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
-
+const FiX: React.FC<React.SVGProps<SVGSVGElement>> = (props) => <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
 
 // Icon for form fields (existing)
 interface FormIconProps { children: React.ReactNode }
@@ -88,7 +87,8 @@ const CountdownBar: React.FC<CountdownBarProps> = ({ isoName, countdowns }) => {
 // Status Badge (existing)
 interface StatusBadgeProps { state: string }
 const StatusBadge: React.FC<StatusBadgeProps> = ({ state }) => {
-    const stateStyles = {
+    type StateStylesKey = 'STOPPED' | 'RUNNING' | 'DELETE' | 'SUCCESS' | 'FAILURE' | 'VERIFIED' | 'default';
+    const stateStyles: Record<StateStylesKey, string> = {
         STOPPED: 'bg-gray-500 text-white',
         RUNNING: 'bg-blue-500 text-white animate-pulse',
         DELETE: 'bg-red-700 text-white',
@@ -97,7 +97,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ state }) => {
         VERIFIED: 'bg-teal-500 text-white',
         default: 'bg-yellow-500 text-white',
     };
-    const style = stateStyles[state] || stateStyles.default;
+    const style = stateStyles[state as StateStylesKey] || stateStyles.default;
     return (
         <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${style}`}>
             {state}
@@ -139,7 +139,6 @@ interface HistoryItem {
     state: string;
 }
 
-// --- NEW --- Interface for the build details from the new endpoint
 interface BuildDetails {
     deploy_id: string;
     step: string;
@@ -147,7 +146,9 @@ interface BuildDetails {
     task_id: string;
 }
 
-// --- NEW --- Details Modal Component
+// --- Modal Components ---
+
+// Details Modal (Existing)
 interface DetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -161,12 +162,12 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ isOpen, onClose, item, deta
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
             <div className="bg-slate-800 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-700 transform transition-all"
-                 onClick={(e: React.MouseEvent) => e.stopPropagation()} // Prevents closing when clicking inside
+                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center p-5 border-b border-slate-700">
                     <h2 className="text-xl font-bold text-sky-400">Build Details</h2>
                     <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
-                        <FiX size={24} />
+                        <FiX width={24} height={24} />
                     </button>
                 </div>
                 
@@ -215,6 +216,61 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ isOpen, onClose, item, deta
     );
 };
 
+// --- NEW --- Reusable Confirmation Modal ---
+interface ConfirmationModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title: string;
+    message: React.ReactNode;
+    confirmText?: string;
+    cancelText?: string;
+    isConfirming: boolean;
+}
+
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+    isOpen,
+    onClose,
+    onConfirm,
+    title,
+    message,
+    confirmText = 'Confirm',
+    cancelText = 'Cancel',
+    isConfirming = false,
+}) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4" onClick={onClose}>
+            <div
+                className="bg-slate-800 rounded-2xl shadow-xl w-full max-w-md border border-slate-700 transform transition-all"
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            >
+                <div className="p-6">
+                    <h2 className="text-xl font-bold text-red-400 mb-2">{title}</h2>
+                    <div className="text-slate-300">{message}</div>
+                </div>
+                <div className="flex justify-end items-center gap-4 bg-slate-800/50 p-4 border-t border-slate-700 rounded-b-2xl">
+                    <button
+                        onClick={onClose}
+                        disabled={isConfirming}
+                        className="py-2 px-4 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-semibold transition-colors disabled:opacity-50"
+                    >
+                        {cancelText}
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={isConfirming}
+                        className="py-2 px-4 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors flex items-center justify-center min-w-[100px] disabled:bg-red-800 disabled:cursor-wait"
+                    >
+                        {isConfirming ? <Spinner size="h-5 w-5" /> : confirmText}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 // --- Main Page Component ---
 
@@ -234,14 +290,18 @@ const HistoryPageContent: React.FC = () => {
     const [loadingState, setLoadingState] = useState<Map<string, boolean>>(new Map());
     const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
     
-    // --- NEW --- State for the details modal
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    // State for the details modal
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState<boolean>(false);
     const [modalData, setModalData] = useState<{ item: HistoryItem, details: BuildDetails } | null>(null);
     const [isModalLoading, setIsModalLoading] = useState<boolean>(false);
 
+    // --- NEW --- State for deletion confirmation
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
+    const [itemToDelete, setItemToDelete] = useState<HistoryItem | null>(null);
+    const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
     // Toast notification function
-    const showNotification = (message, type = 'success') => {
+    const showNotification = (message: string, type = 'success') => {
         setNotification({ show: true, message, type });
         setTimeout(() => {
             setNotification({ show: false, message: '', type: 'success' });
@@ -293,8 +353,21 @@ const HistoryPageContent: React.FC = () => {
                 const data = await response.json();
                 
                 if (Array.isArray(data.history) && data.history.length > 0) {
-                    setAllHistoryData((prev) => [...prev, ...data.history]);
-                    
+                    // --- FIX START: Filter out duplicates before updating state ---
+                    setAllHistoryData((prev) => {
+                        // 1. 创建一个包含当前所有 iso_name 的 Set，用于快速查找
+                        const existingIsoNames = new Set(prev.map(item => item.iso_name));
+                        
+                        // 2. 过滤掉新获取的、iso_name 已经存在的项
+                        const uniqueNewHistory = data.history.filter(
+                            (item: HistoryItem) => !existingIsoNames.has(item.iso_name)
+                        );
+                        
+                        // 3. 返回合并后的无重复数组
+                        return [...prev, ...uniqueNewHistory];
+                    });
+                    // --- FIX END ---
+
                     const newLockStatus = new Map(lockStatus);
                     const newCountdowns = new Map(countdowns);
                     data.history.forEach((item: HistoryItem) => {
@@ -341,6 +414,7 @@ const HistoryPageContent: React.FC = () => {
     }, []);
 
     const toggleLock = async (deployId: string, currentLockStatus: number) => {
+        if (isDeleting) return; // Prevent action while another is in progress
         const newLockStatus = currentLockStatus === 1 ? 0 : 1;
         setLoadingState(prev => new Map(prev).set(deployId, true));
         try {
@@ -363,6 +437,48 @@ const HistoryPageContent: React.FC = () => {
         }
     };
     
+    // --- OPTIMIZED --- Delete handler functions
+    const handleDeleteClick = (item: HistoryItem) => {
+        if (lockStatus.get(item.iso_name) === 1) {
+            showNotification('Cannot delete a locked resource.', 'error');
+            return;
+        }
+        setItemToDelete(item);
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!itemToDelete) return;
+
+        setIsDeleting(true);
+        const deployId = itemToDelete.iso_name;
+
+        try {
+            const response = await fetch(`${apiBaseUrl}/build/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', deploy_id: deployId }),
+            });
+
+            if (response.ok) {
+                setAllHistoryData(prevData => prevData.filter(item => item.iso_name !== deployId));
+                showNotification('Build deleted successfully.', 'success');
+            } else {
+                const errorData = await response.json().catch(() => ({ info: 'Deletion failed. The build might be in a state that prevents deletion.' }));
+                throw new Error(errorData.info || 'Failed to delete build.');
+            }
+        } catch (error) {
+            console.error('Error deleting build:', error);
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+            showNotification(errorMessage, 'error');
+        } finally {
+            setIsDeleting(false);
+            setIsConfirmModalOpen(false);
+            setItemToDelete(null);
+        }
+    };
+
+
     // --- Event Handlers ---
     const handleHistoryProjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedHistoryProject(e.target.value);
@@ -379,11 +495,10 @@ const HistoryPageContent: React.FC = () => {
         }
     };
 
-    // --- NEW --- Handler for opening the details modal and fetching data
     const handleViewDetails = async (item: HistoryItem) => {
-        setIsModalOpen(true);
+        setIsDetailsModalOpen(true);
         setIsModalLoading(true);
-        setModalData(null); // Clear previous data
+        setModalData(null); 
         
         try {
             const response = await fetch(`${apiBaseUrl}/build/${item.iso_name}`);
@@ -395,23 +510,36 @@ const HistoryPageContent: React.FC = () => {
         } catch (error) {
             console.error(error);
             showNotification('Could not load build details.', 'error');
-            // Optionally close the modal on error after a delay, or let the user close it.
-            // setIsModalOpen(false);
         } finally {
             setIsModalLoading(false);
         }
     };
 
-
     return (
         <div className="bg-slate-900 text-white min-h-screen p-4 sm:p-6 lg:p-8 font-sans">
-            {/* --- NEW --- Render the Details Modal */}
             <DetailsModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                isOpen={isDetailsModalOpen}
+                onClose={() => setIsDetailsModalOpen(false)}
                 item={modalData?.item}
                 details={modalData?.details}
                 isLoading={isModalLoading}
+            />
+
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => !isDeleting && setIsConfirmModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                isConfirming={isDeleting}
+                title="Confirm Deletion"
+                message={
+                    <>
+                        Are you sure you want to permanently delete the build:
+                        <br />
+                        <strong className="text-red-300 font-mono my-2 block break-all">{itemToDelete?.iso_name}</strong>
+                        This action cannot be undone.
+                    </>
+                }
+                confirmText="Delete"
             />
 
             {/* Notification Toast */}
@@ -466,48 +594,55 @@ const HistoryPageContent: React.FC = () => {
                 
                 {!isLoading && allHistoryData.length === 0 && (
                      <div className="text-center py-16">
-                         <h3 className="text-xl text-slate-300">No Build Records Found</h3>
-                         <p className="text-slate-500 mt-2">Try adjusting your filters or create a new build.</p>
-                     </div>
+                        <h3 className="text-xl text-slate-300">No Build Records Found</h3>
+                        <p className="text-slate-500 mt-2">Try adjusting your filters or create a new build.</p>
+                    </div>
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {allHistoryData.map((item) => (
-                        <div key={item.iso_name} className="bg-slate-800/50 rounded-2xl shadow-lg border border-slate-700 flex flex-col justify-between transition-all duration-300 hover:shadow-sky-500/20 hover:-translate-y-1">
-                           <div className="p-5">
-                                 <div className="flex justify-between items-center mb-4">
-                                     <StatusBadge state={item.state} />
-                                     {loadingState.get(item.iso_name) ? <Spinner size="h-4 w-4" /> :
-                                         <button onClick={() => toggleLock(item.iso_name, lockStatus.get(item.iso_name) || 0)} className="text-slate-400 hover:text-white transition-colors">
-                                             {lockStatus.get(item.iso_name) === 1 ? <FiLock /> : <FiUnlock />}
-                                         </button>
-                                     }
-                                 </div>
-                                 <h3 className="font-bold text-lg text-white truncate mb-1" title={item.iso_name}>{item.iso_name}</h3>
-                                 <p className="text-sm text-sky-400 font-medium mb-4">{item.app_name} v{item.app_version}</p>
-                                 <div className="text-xs text-slate-400 space-y-2">
-                                     <p><strong>Host:</strong> {item.deploy_host} ({item.ip})</p>
-                                     <p><strong>Started:</strong> {new Date(item.start_build_time).toLocaleString()}</p>
-                                     <p><strong>Finished:</strong> {item.end_build_time ? new Date(item.end_build_time).toLocaleString() : 'N/A'}</p>
-                                 </div>
+                    {allHistoryData.map((item) => {
+                        const isLocked = lockStatus.get(item.iso_name) === 1;
+                        const isThisItemLoading = loadingState.get(item.iso_name);
+                        const isThisItemDeleting = isDeleting && itemToDelete?.iso_name === item.iso_name;
+
+                        return (
+                            <div key={item.iso_name} className={`bg-slate-800/50 rounded-2xl shadow-lg border border-slate-700 flex flex-col justify-between transition-all duration-300 hover:shadow-sky-500/20 hover:-translate-y-1 ${isThisItemDeleting ? 'opacity-50' : ''}`}>
+                                <div className="p-5">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <StatusBadge state={item.state} />
+                                        {isThisItemLoading ? <Spinner size="h-4 w-4" /> :
+                                            <button onClick={() => toggleLock(item.iso_name, lockStatus.get(item.iso_name) || 0)} className="text-slate-400 hover:text-white transition-colors disabled:cursor-not-allowed" disabled={isDeleting}>
+                                                {isLocked ? <FiLock /> : <FiUnlock />}
+                                            </button>
+                                        }
+                                    </div>
+                                    <h3 className="font-bold text-lg text-white truncate mb-1" title={item.iso_name}>{item.iso_name}</h3>
+                                    <p className="text-sm text-sky-400 font-medium mb-4">{item.app_name} v{item.app_version}</p>
+                                    <div className="text-xs text-slate-400 space-y-2">
+                                        <p><strong>Host:</strong> {item.deploy_host} ({item.ip})</p>
+                                        <p><strong>Started:</strong> {new Date(item.start_build_time).toLocaleString()}</p>
+                                        <p><strong>Finished:</strong> {item.end_build_time ? new Date(item.end_build_time).toLocaleString() : 'N/A'}</p>
+                                    </div>
+                               </div>
+                               <div className="bg-slate-800 p-4 rounded-b-2xl space-y-3">
+                                    {!isLocked && <CountdownBar isoName={item.iso_name} countdowns={countdowns} />}
+                                    <div className="flex justify-end items-center space-x-2">
+                                        <button onClick={() => handleViewDetails(item)} className="text-sm py-2 px-3 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed" disabled={isThisItemDeleting}>
+                                           <FiEye /> <span className="ml-2">Details</span>
+                                        </button>
+                                        
+                                        <button
+                                            onClick={() => handleDeleteClick(item)}
+                                            disabled={isLocked || isThisItemDeleting}
+                                            className="text-sm py-2 px-3 rounded-md bg-red-600/50 hover:bg-red-600 text-red-300 hover:text-white transition-colors flex items-center justify-center min-w-[80px] disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed"
+                                        >
+                                            {isThisItemDeleting ? <Spinner size="h-4 w-4" /> : 'Delete'}
+                                        </button>
+                                    </div>
+                               </div>
                             </div>
-                           <div className="bg-slate-800 p-4 rounded-b-2xl space-y-3">
-                                {lockStatus.get(item.iso_name) === 0 && <CountdownBar isoName={item.iso_name} countdowns={countdowns} />}
-                                <div className="flex justify-end items-center space-x-2">
-                                     {/* --- MODIFIED --- Changed from <a> to <button> to trigger modal */}
-                                    <button onClick={() => handleViewDetails(item)} className="text-sm py-2 px-3 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors flex items-center">
-                                       <FiEye /> <span className="ml-2">Details</span>
-                                    </button>
-                                    <button
-                                        disabled={lockStatus.get(item.iso_name) === 1 || loadingState.get(item.iso_name)}
-                                        className="text-sm py-2 px-3 rounded-md bg-red-600/50 hover:bg-red-600 text-red-300 hover:text-white transition-colors disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                           </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
                 
                 {/* Load More Button */}
@@ -519,7 +654,6 @@ const HistoryPageContent: React.FC = () => {
                     )}
                     {isLoading && currentPage > 1 && <Spinner size="h-8 w-8" />}
                 </div>
-
             </div>
         </div>
     );

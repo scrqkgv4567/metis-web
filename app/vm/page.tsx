@@ -12,7 +12,13 @@ const Spinner = ({ size = 'h-12 w-12' }) => (
     </div>
 );
 
-const VmStateToggle = ({ isChecked, onChange, disabled = false }) => (
+interface VmStateToggleProps {
+    isChecked: boolean;
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    disabled?: boolean;
+}
+
+const VmStateToggle = ({ isChecked, onChange, disabled = false }: VmStateToggleProps) => (
     <label className="relative inline-flex items-center cursor-pointer">
         <input 
             type="checkbox" 
@@ -25,7 +31,11 @@ const VmStateToggle = ({ isChecked, onChange, disabled = false }) => (
     </label>
 );
 
-const VmStateBadge = ({ state }) => {
+interface VmStateBadgeProps {
+    state: string;
+}
+
+const VmStateBadge = ({ state }: VmStateBadgeProps) => {
     const isPoweredOn = state === 'poweredOn';
     return (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isPoweredOn ? 'bg-green-600 text-green-100' : 'bg-slate-700 text-slate-300'}`}>
@@ -56,7 +66,7 @@ const VmsDashboard: React.FC = () => {
     const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
     const didFetch = useRef(false);
 
-    const showNotification = (message, type = 'success') => {
+    const showNotification = (message: string, type = 'success') => {
         setNotification({ show: true, message, type });
         setTimeout(() => {
             setNotification({ show: false, message: '', type: 'success' });
