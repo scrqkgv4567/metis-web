@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
+import PageContainer from '@/components/ui/page-container';
 
 // --- Helper Components for a cleaner UI ---
 
@@ -470,7 +471,7 @@ const BuildPage = () => {
     ];
 
     return (
-        <div className="bg-slate-900 text-white min-h-screen p-4 sm:p-6 lg:p-8 font-sans">
+        <div className="bg-slate-900 text-white min-h-screen font-sans">
              {/* Notification Toast */}
             <div className={`fixed top-5 right-5 transition-all duration-300 transform ${notification.show ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
                 <div className={`flex items-center p-4 rounded-lg shadow-lg text-white ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
@@ -479,7 +480,7 @@ const BuildPage = () => {
                 </div>
             </div>
 
-            <div className="max-w-6xl mx-auto">
+            <PageContainer>
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-sky-400">构建页面</h1>
                  
@@ -548,7 +549,7 @@ const BuildPage = () => {
                         </div>
                     </div>
                 </main>
-            </div>
+            </PageContainer>
         </div>
     );
 };

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
+import PageContainer from '@/components/ui/page-container';
 
 // --- Reusable UI Helper Components ---
 
@@ -550,7 +551,7 @@ const HistoryPageContent: React.FC = () => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto">
+            <PageContainer>
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-sky-400">Build History</h1>
                     <p className="text-slate-400 mt-1">Review, manage, and track your past builds.</p>
@@ -654,7 +655,7 @@ const HistoryPageContent: React.FC = () => {
                     )}
                     {isLoading && currentPage > 1 && <Spinner size="h-8 w-8" />}
                 </div>
-            </div>
+            </PageContainer>
         </div>
     );
 };

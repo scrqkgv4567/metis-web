@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState, useRef } from "react";
+import PageContainer from '@/components/ui/page-container';
 
 // --- Helper Components ---
 
@@ -129,7 +130,7 @@ const VmsDashboard: React.FC = () => {
     };
 
     return (
-        <div className="p-4 sm:p-6 lg:p-8 font-sans">
+        <PageContainer className="font-sans">
             {/* Notification Toast */}
             <div className={`fixed top-5 right-5 transition-all duration-300 transform ${notification.show ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
                 <div className={`flex items-center p-4 rounded-lg shadow-lg text-white ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
@@ -189,7 +190,7 @@ const VmsDashboard: React.FC = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </PageContainer>
     );
 };
 

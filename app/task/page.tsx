@@ -1,7 +1,8 @@
 'use client'
 import React, { FormEvent, useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { CircularProgress, Container, Typography, Button, Box, TextField, Paper, LinearProgress } from '@mui/material';
+import { CircularProgress, Typography, Button, Box, TextField, Paper, LinearProgress } from '@mui/material';
+import PageContainer from '@/components/ui/page-container';
 import { styled } from '@mui/system';
 
 interface TaskState {
@@ -59,15 +60,10 @@ const TaskPageContent  = () => {
             }
         };
 
-<<<<<<< HEAD
         if (deploy_id) {
             doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
         }
-    }, [deploy_id, apiBaseUrl, triggerOnsubmit]);
-=======
-        doFetchTask().catch(error => console.error('Failed to fetch task details:', error));
     }, [deploy_id, apiBaseUrl, triggerOnSubmit]);
->>>>>>> 9f14defa6946d92db103f42aa89c749afd52c5f3
 
     function translateTaskStep({step}: { step: any }) {
         switch (step) {
@@ -157,7 +153,7 @@ const TaskPageContent  = () => {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ mt: 5 }}>
+        <PageContainer>
             <StyledPaper elevation={3}>
                 <form onSubmit={onSubmit}>
                     <Typography variant="h6" gutterBottom>构建 ID:</Typography>
@@ -240,7 +236,7 @@ const TaskPageContent  = () => {
                     </Box>
                 </form>
             </StyledPaper>
-        </Container>
+        </PageContainer>
     );
 }
 
