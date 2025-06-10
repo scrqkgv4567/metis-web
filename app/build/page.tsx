@@ -313,10 +313,10 @@ const BuildPage: FC = () => {
                 body: JSON.stringify(formData),
             });
              if (!response.ok) throw new Error('Build request failed');
-            showNotification('Verification build has started successfully!', 'success');
+            showNotification('提交成功!', 'success');
         } catch (error) {
-            console.error('Error on form submit:', error);
-            showNotification('Failed to start verification build.', 'error');
+            console.error('错误提交:', error);
+            showNotification('构建失败.', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -592,7 +592,7 @@ const BuildPage: FC = () => {
                                         </button>
                                    ) : (
                                         <button onClick={handleFormSubmit} disabled={isLoading} className="w-full ml-2 text-center py-3 px-4 rounded-lg font-semibold transition-all duration-300 text-white bg-green-600 hover:bg-green-500 disabled:bg-green-800 disabled:cursor-not-allowed flex items-center justify-center">
-                                            {isLoading ? <><Spinner /> Verifying...</> : '开始构建'}
+                                            {isLoading ? <><Spinner /> 校验...</> : '开始构建'}
                                         </button>
                                    )}
                                 </div>
