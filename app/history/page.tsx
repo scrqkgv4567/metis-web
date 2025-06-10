@@ -73,10 +73,13 @@ const CountdownBar: React.FC<CountdownBarProps> = ({ isoName, countdowns }) => {
         return <div className="text-red-400 text-xs font-semibold">Expired & Ready for Cleanup</div>;
     }
 
+    // 使用外部定义的 formatTimeValue 函数格式化时间
+    const formattedTime = formatTimeValue(timeLeft);
+
     return (
         <div>
             <div className="text-xs text-slate-400 mb-1">
-                Expires in: {formatTime(timeLeft)}
+                过期时间: {formattedTime}
             </div>
             <div className="w-full bg-slate-700 rounded-full h-1.5">
                 <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: `${percentage}%` }}></div>
@@ -109,7 +112,8 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ state }) => {
 
 // --- Interfaces & Utility Functions ---
 
-export function formatTime(ms: number): string {
+// 将 formatTime 定义为组件内部函数，避免被 Next.js 误认为是导出
+const formatTimeValue = (ms: number): string => {
     if (ms <= 0) return '00:00:00';
     let seconds = Math.floor(ms / 1000);
     let minutes = Math.floor(seconds / 60);
@@ -166,7 +170,7 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ isOpen, onClose, item, deta
                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center p-5 border-b border-slate-700">
-                    <h2 className="text-xl font-bold text-sky-400">Build Details</h2>
+                    <h2 className="text-xl font-bold text-sky-400">构建详情</h2>
                     <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
                         <FiX width={24} height={24} />
                     </button>
@@ -182,26 +186,26 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ isOpen, onClose, item, deta
                             <div>
                                 <h3 className="font-semibold text-lg text-white mb-3" title={item.iso_name}>{item.iso_name}</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Project:</strong> {item.app_name}</p>
-                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Version:</strong> {item.app_version}</p>
-                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Host:</strong> {item.deploy_host} ({item.ip})</p>
-                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Build State:</strong> <StatusBadge state={item.state} /></p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">项目:</strong> {item.app_name}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">版本:</strong> {item.app_version}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">构建主机:</strong> {item.deploy_host} ({item.ip})</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">构建状态:</strong> <StatusBadge state={item.state} /></p>
                                 </div>
                             </div>
                             <div className="border-t border-slate-700 pt-4">
-                                <h3 className="font-semibold text-lg text-white mb-3">Task Information</h3>
+                                <h3 className="font-semibold text-lg text-white mb-3">任务信息</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Deploy ID:</strong> {details.deploy_id}</p>
-                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Task ID:</strong> {details.task_id}</p>
-                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Current Step:</strong> {details.step}</p>
-                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Task State:</strong> {details.state}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">构建 ID:</strong> {details.deploy_id}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">任务 ID:</strong> {details.task_id}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">当前步骤:</strong> {details.step}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">当前状态:</strong> {details.state}</p>
                                 </div>
                             </div>
                              <div className="border-t border-slate-700 pt-4">
-                                <h3 className="font-semibold text-lg text-white mb-3">Timestamps</h3>
+                                <h3 className="font-semibold text-lg text-white mb-3">构建时间</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Started:</strong> {new Date(item.start_build_time).toLocaleString()}</p>
-                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">Finished:</strong> {item.end_build_time ? new Date(item.end_build_time).toLocaleString() : 'N/A'}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">开始:</strong> {new Date(item.start_build_time).toLocaleString()}</p>
+                                    <p className="text-slate-300"><strong className="font-medium text-slate-100">完成:</strong> {item.end_build_time ? new Date(item.end_build_time).toLocaleString() : 'N/A'}</p>
                                 </div>
                             </div>
                         </div>
@@ -553,8 +557,8 @@ const HistoryPageContent: React.FC = () => {
 
             <PageContainer>
                 <header className="mb-8">
-                    <h1 className="text-3xl font-bold text-sky-400">Build History</h1>
-                    <p className="text-slate-400 mt-1">Review, manage, and track your past builds.</p>
+                    <h1 className="text-3xl font-bold text-sky-400">构建历史</h1>
+                    <p className="text-slate-400 mt-1"></p>
                 </header>
 
                 {/* Filter Bar */}
@@ -565,10 +569,10 @@ const HistoryPageContent: React.FC = () => {
                             value={selectedHistoryProject}
                             onChange={handleHistoryProjectChange}
                             options={[
-                                { value: '', label: 'All Projects' },
-                                { value: 'waf', label: 'WAF' }, { value: 'omas', label: 'Bastion Host' },
-                                { value: 'lams', label: 'Log Audit' }, { value: 'dsas', label: 'Data Audit' },
-                                { value: 'cosa', label: '2-in-1 Gateway' },
+                                { value: '', label: '所有' },
+                                { value: 'waf', label: 'WAF' }, { value: 'omas', label: '堡垒机' },
+                                { value: 'lams', label: '日审' }, { value: 'dsas', label: '数审' },
+                                { value: 'cosa', label: '二合一' },
                             ]}
                             icon={<FiPackage />}
                         />
@@ -578,7 +582,7 @@ const HistoryPageContent: React.FC = () => {
                             onChange={handleFilterVersionChange}
                             disabled={!selectedHistoryProject || filterVersionOptions.length === 0}
                             options={[
-                                { value: '', label: 'All Versions' },
+                                { value: '', label: '所有版本' },
                                 ...filterVersionOptions.map(v => ({ value: v, label: v }))
                             ]}
                             icon={<FiTag />}
@@ -629,7 +633,7 @@ const HistoryPageContent: React.FC = () => {
                                     {!isLocked && <CountdownBar isoName={item.iso_name} countdowns={countdowns} />}
                                     <div className="flex justify-end items-center space-x-2">
                                         <button onClick={() => handleViewDetails(item)} className="text-sm py-2 px-3 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed" disabled={isThisItemDeleting}>
-                                           <FiEye /> <span className="ml-2">Details</span>
+                                           <FiEye /> <span className="ml-2">详情</span>
                                         </button>
                                         
                                         <button
@@ -637,7 +641,7 @@ const HistoryPageContent: React.FC = () => {
                                             disabled={isLocked || isThisItemDeleting}
                                             className="text-sm py-2 px-3 rounded-md bg-red-600/50 hover:bg-red-600 text-red-300 hover:text-white transition-colors flex items-center justify-center min-w-[80px] disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed"
                                         >
-                                            {isThisItemDeleting ? <Spinner size="h-4 w-4" /> : 'Delete'}
+                                            {isThisItemDeleting ? <Spinner size="h-4 w-4" /> : '删除'}
                                         </button>
                                     </div>
                                </div>
