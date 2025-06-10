@@ -140,8 +140,8 @@ const VmsDashboard: React.FC = () => {
             </div>
 
             <header className="mb-8">
-                <h1 className="text-3xl font-bold text-sky-400">Virtual Machine Resources</h1>
-                <p className="text-slate-400 mt-1">Manage and monitor your test environment VMs.</p>
+                <h1 className="text-3xl font-bold text-sky-400">虚拟机资源</h1>
+                <p className="text-slate-400 mt-1">开关机虚拟机.</p>
             </header>
 
             {loading ? (
@@ -152,12 +152,12 @@ const VmsDashboard: React.FC = () => {
                         <table className="w-full text-sm text-left text-slate-300">
                             <thead className="text-xs text-slate-400 uppercase bg-slate-800">
                                 <tr>
-                                    <th scope="col" className="px-6 py-3">VM Name</th>
-                                    <th scope="col" className="px-6 py-3">State</th>
-                                    <th scope="col" className="px-6 py-3">IP Address</th>
-                                    <th scope="col" className="px-6 py-3">Operating System</th>
-                                    <th scope="col" className="px-6 py-3">Host</th>
-                                    <th scope="col" className="px-6 py-3 text-center">Power Action</th>
+                                    <th scope="col" className="px-6 py-3">名称</th>
+                                    <th scope="col" className="px-6 py-3">状态</th>
+                                    <th scope="col" className="px-6 py-3">IP</th>
+                                    <th scope="col" className="px-6 py-3">操作系统</th>
+                                    <th scope="col" className="px-6 py-3">宿主机</th>
+                                    <th scope="col" className="px-6 py-3 text-center">电源操作</th>
                                 </tr>
                             </thead>
                             <tbody>
